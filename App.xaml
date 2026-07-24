@@ -34,5 +34,14 @@
    <Setter Property="Padding" Value="10"/>
    <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
   </Style>
+  <Style TargetType="ToolTip">
+   <Setter Property="MaxWidth" Value="360"/>
+   <Setter Property="Padding" Value="10,7"/>
+   <Setter Property="Background" Value="#FFFDFD"/>
+   <Setter Property="Foreground" Value="{StaticResource Ink}"/>
+   <Setter Property="BorderBrush" Value="#B9BEC3"/>
+   <Setter Property="BorderThickness" Value="1"/>
+   <Setter Property="FontSize" Value="12"/>
+  </Style>
  </Application.Resources>
 </Application>

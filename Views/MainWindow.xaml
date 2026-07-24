@@ -13,15 +13,21 @@
   <Border Grid.Row="0" Background="White" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="14,10">
    <DockPanel>
     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-     <Button Content="설정 불러오기" Command="{Binding LoadPresetCommand}"/>
-     <Button Content="설정 저장" Command="{Binding SavePresetCommand}"/>
-     <Button Content="결과 저장" Command="{Binding ExportCommand}" Background="{StaticResource Accent}" Foreground="White"/>
+     <Button Content="설정 불러오기" Command="{Binding LoadPresetCommand}"
+      ToolTip="저장해 둔 analysis_settings.json을 불러와 분석 조건을 복원합니다."/>
+     <Button Content="설정 저장" Command="{Binding SavePresetCommand}"
+      ToolTip="현재 ROI, 전처리, Threshold, 필터 및 보정 조건을 JSON으로 저장합니다."/>
+     <Button Content="결과 저장" Command="{Binding ExportCommand}" Background="{StaticResource Accent}" Foreground="White"
+      ToolTip="원본 해상도로 다시 분석한 뒤 이미지, CSV, JSON, HTML 보고서를 결과 폴더에 저장합니다."/>
     </StackPanel>
     <StackPanel Orientation="Horizontal">
      <TextBlock Text="SEM PARTICLE ANALYZER" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" Margin="0,0,18,0"/>
-     <Button Content="이미지 열기" Command="{Binding OpenImageCommand}"/>
-     <Button Content="분석 실행" Command="{Binding AnalyzeCommand}"/>
-     <Button Content="취소" Command="{Binding CancelCommand}"/>
+     <Button Content="이미지 열기" Command="{Binding OpenImageCommand}"
+      ToolTip="PNG, JPEG, BMP, TIFF 이미지를 엽니다. 원본 파일은 수정하지 않습니다."/>
+     <Button Content="분석 실행" Command="{Binding AnalyzeCommand}"
+      ToolTip="현재 ROI와 모든 활성 조건을 적용하여 입자를 다시 검출하고 측정합니다."/>
+     <Button Content="취소" Command="{Binding CancelCommand}"
+      ToolTip="현재 진행 중인 이미지 로드 또는 분석 작업을 안전하게 취소합니다."/>
     </StackPanel>
    </DockPanel>
   </Border>
@@ -43,7 +49,8 @@
       <DockPanel>
        <TextBlock DockPanel.Dock="Right" Text="{Binding ImageDescription}" Foreground="#B8BDC1" VerticalAlignment="Center"/>
        <TextBlock Text="IMAGE VIEWER" Foreground="#E4E6E8" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"/>
-       <ComboBox ItemsSource="{Binding ViewerModes}" SelectedItem="{Binding ViewerMode}" Width="140"/>
+       <ComboBox ItemsSource="{Binding ViewerModes}" SelectedItem="{Binding ViewerMode}" Width="140"
+        ToolTip="Original: 원본&#x0a;Preprocessed: 전처리 결과&#x0a;BinaryMask: 분할 마스크&#x0a;Overlay: 통과/제외 객체 윤곽과 ID"/>
       </DockPanel>
      </Border>
      <Border x:Name="ImageHost" Grid.Row="1" Background="#17191B"
@@ -82,65 +89,79 @@
      </Border>
      <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
       <StackPanel Margin="12">
-       <GroupBox Header="분석 ROI">
+       <GroupBox Header="분석 ROI"
+        ToolTip="실제로 분석할 사각 영역입니다. 이미지 위에서 드래그하거나 원본 이미지 기준 픽셀 좌표를 입력합니다. ROI 밖 픽셀은 분석하지 않습니다.">
         <Grid>
          <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
          <Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
-         <StackPanel Margin="0,0,5,6"><TextBlock Text="X" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.Roi.X}"/></StackPanel>
-         <StackPanel Grid.Column="1" Margin="5,0,0,6"><TextBlock Text="Y" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.Roi.Y}"/></StackPanel>
-         <StackPanel Grid.Row="1" Margin="0,0,5,0"><TextBlock Text="Width" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.Roi.Width}"/></StackPanel>
-         <StackPanel Grid.Row="1" Grid.Column="1" Margin="5,0,0,0"><TextBlock Text="Height" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.Roi.Height}"/></StackPanel>
+         <StackPanel Margin="0,0,5,6"><TextBlock Text="X" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.Roi.X}" ToolTip="ROI 왼쪽 위 모서리의 원본 이미지 X 좌표(px)"/></StackPanel>
+         <StackPanel Grid.Column="1" Margin="5,0,0,6"><TextBlock Text="Y" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.Roi.Y}" ToolTip="ROI 왼쪽 위 모서리의 원본 이미지 Y 좌표(px)"/></StackPanel>
+         <StackPanel Grid.Row="1" Margin="0,0,5,0"><TextBlock Text="Width" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.Roi.Width}" ToolTip="분석 ROI의 너비(px)"/></StackPanel>
+         <StackPanel Grid.Row="1" Grid.Column="1" Margin="5,0,0,0"><TextBlock Text="Height" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.Roi.Height}" ToolTip="분석 ROI의 높이(px)"/></StackPanel>
         </Grid>
        </GroupBox>
 
-       <GroupBox Header="Threshold / GV">
+       <GroupBox Header="Threshold / GV"
+        ToolTip="Threshold는 픽셀을 전경/배경으로 나누는 1차 분할 조건입니다. 아래 객체 필터와는 별도로 적용됩니다.">
         <StackPanel>
          <TextBlock Text="방식" Foreground="{StaticResource Muted}"/>
-         <ComboBox ItemsSource="{Binding ThresholdModes}" SelectedItem="{Binding Settings.ThresholdMode}" Margin="0,2,0,8"/>
+         <ComboBox ItemsSource="{Binding ThresholdModes}" SelectedItem="{Binding Settings.ThresholdMode}" Margin="0,2,0,8"
+          ToolTip="InRange: Min–Max GV 범위만 선택&#x0a;Binary: Min GV보다 밝은 픽셀 선택&#x0a;Otsu: 영상 분포에서 임계값을 자동 계산"/>
          <Grid>
           <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
-          <StackPanel Margin="0,0,5,0"><TextBlock Text="Minimum GV" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.MinimumGv}"/></StackPanel>
-          <StackPanel Grid.Column="1" Margin="5,0,0,0"><TextBlock Text="Maximum GV" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.MaximumGv}"/></StackPanel>
+          <StackPanel Margin="0,0,5,0"><TextBlock Text="Minimum GV" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.MinimumGv}" ToolTip="전경으로 선택할 최소 Gray Value입니다. 8-bit 영상 기준 0은 검정, 255는 흰색입니다."/></StackPanel>
+          <StackPanel Grid.Column="1" Margin="5,0,0,0"><TextBlock Text="Maximum GV" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.MaximumGv}" ToolTip="InRange 방식에서 전경으로 선택할 최대 Gray Value입니다."/></StackPanel>
          </Grid>
         </StackPanel>
        </GroupBox>
 
-       <GroupBox Header="전처리">
+       <GroupBox Header="전처리"
+        ToolTip="Threshold 적용 전에 영상 복사본을 보정합니다. 원본 이미지는 변경되지 않습니다.">
         <StackPanel>
-         <CheckBox Content="Gaussian blur" IsChecked="{Binding Settings.Preprocessing.GaussianEnabled}" Margin="0,2,0,6"/>
+         <CheckBox Content="Gaussian blur" IsChecked="{Binding Settings.Preprocessing.GaussianEnabled}" Margin="0,2,0,6"
+          ToolTip="고주파 노이즈를 부드럽게 줄입니다. 작은 입자의 경계도 흐려질 수 있습니다."/>
          <Grid Margin="20,0,0,7"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="80"/></Grid.ColumnDefinitions>
           <TextBlock Text="Kernel size" Foreground="{StaticResource Muted}" VerticalAlignment="Center"/>
-          <TextBox Grid.Column="1" Text="{Binding Settings.Preprocessing.GaussianKernelSize}"/>
+          <TextBox Grid.Column="1" Text="{Binding Settings.Preprocessing.GaussianKernelSize}" ToolTip="Blur 영역 크기입니다. 짝수를 입력하면 다음 홀수로 보정됩니다."/>
          </Grid>
-         <CheckBox Content="CLAHE" IsChecked="{Binding Settings.Preprocessing.ClaheEnabled}" Margin="0,2,0,6"/>
-         <CheckBox Content="Invert" IsChecked="{Binding Settings.Preprocessing.Invert}" Margin="0,2,0,6"/>
-         <CheckBox Content="Morphology open" IsChecked="{Binding Settings.Preprocessing.MorphologyOpenEnabled}" Margin="0,2,0,0"/>
+         <CheckBox Content="CLAHE" IsChecked="{Binding Settings.Preprocessing.ClaheEnabled}" Margin="0,2,0,6"
+          ToolTip="영역별 대비를 개선합니다. 조명이 불균일하거나 대비가 낮은 이미지에 유용합니다."/>
+         <CheckBox Content="Invert" IsChecked="{Binding Settings.Preprocessing.Invert}" Margin="0,2,0,6"
+          ToolTip="GV를 반전합니다. 어두운 입자를 밝은 전경으로 분석할 때 사용합니다."/>
+         <CheckBox Content="Morphology open" IsChecked="{Binding Settings.Preprocessing.MorphologyOpenEnabled}" Margin="0,2,0,0"
+          ToolTip="침식 후 팽창으로 작은 밝은 노이즈와 가는 돌기를 제거합니다."/>
         </StackPanel>
        </GroupBox>
 
-       <GroupBox Header="객체 필터">
+       <GroupBox Header="객체 필터"
+        ToolTip="Threshold로 분할된 각 객체의 측정값을 검사합니다. 활성화한 모든 필터를 통과해야 Accepted가 됩니다.">
         <StackPanel>
-         <CheckBox Content="Area 활성화" IsChecked="{Binding Settings.AreaFilter.Enabled}" Margin="0,0,0,5"/>
+         <CheckBox Content="Area 활성화" IsChecked="{Binding Settings.AreaFilter.Enabled}" Margin="0,0,0,5"
+          ToolTip="객체 내부 픽셀 면적으로 통과 여부를 판정합니다."/>
          <Grid Margin="20,0,0,9"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
-          <StackPanel Margin="0,0,5,0"><TextBlock Text="Min px²" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.AreaFilter.Minimum}"/></StackPanel>
-          <StackPanel Grid.Column="1" Margin="5,0,0,0"><TextBlock Text="Max px²" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.AreaFilter.Maximum}"/></StackPanel>
+          <StackPanel Margin="0,0,5,0"><TextBlock Text="Min px²" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.AreaFilter.Minimum}" ToolTip="이 면적보다 작은 객체를 제외합니다. 빈 값은 하한 없음입니다."/></StackPanel>
+          <StackPanel Grid.Column="1" Margin="5,0,0,0"><TextBlock Text="Max px²" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.AreaFilter.Maximum}" ToolTip="이 면적보다 큰 객체를 제외합니다. 빈 값은 상한 없음입니다."/></StackPanel>
          </Grid>
-         <CheckBox Content="Circularity 활성화" IsChecked="{Binding Settings.CircularityFilter.Enabled}" Margin="0,0,0,5"/>
+         <CheckBox Content="Circularity 활성화" IsChecked="{Binding Settings.CircularityFilter.Enabled}" Margin="0,0,0,5"
+          ToolTip="Circularity = 4π × Area / Perimeter². 원에 가까울수록 1에 가깝습니다. 매우 작은 객체는 값이 불안정하여 계산하지 않을 수 있습니다."/>
          <Grid Margin="20,0,0,9"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
           <TextBox Text="{Binding Settings.CircularityFilter.Minimum}" Margin="0,0,5,0"/>
           <TextBox Grid.Column="1" Text="{Binding Settings.CircularityFilter.Maximum}" Margin="5,0,0,0"/>
          </Grid>
          <TextBlock Text="ROI 경계 객체" Foreground="{StaticResource Muted}"/>
-         <ComboBox ItemsSource="{Binding BorderRules}" SelectedItem="{Binding Settings.BorderRule}" Margin="0,3,0,0"/>
+         <ComboBox ItemsSource="{Binding BorderRules}" SelectedItem="{Binding Settings.BorderRule}" Margin="0,3,0,0"
+          ToolTip="Include: 경계 객체 포함&#x0a;Exclude: 잘렸을 가능성이 있는 경계 객체 제외&#x0a;Mark: 포함하되 TouchesBorder로 표시"/>
         </StackPanel>
        </GroupBox>
 
-       <GroupBox Header="Scale calibration">
+       <GroupBox Header="Scale calibration"
+        ToolTip="픽셀과 실제 길이의 환산값입니다. 보정이 없으면 실제 단위 측정값은 저장되지 않습니다.">
         <StackPanel>
-         <CheckBox Content="보정값 사용" IsChecked="{Binding Settings.Calibration.Enabled}" Margin="0,0,0,7"/>
+         <CheckBox Content="보정값 사용" IsChecked="{Binding Settings.Calibration.Enabled}" Margin="0,0,0,7"
+          ToolTip="켜면 µm/pixel 값으로 면적과 직경을 실제 단위로 환산합니다."/>
          <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
-          <StackPanel Margin="0,0,5,0"><TextBlock Text="Pixel distance" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.Calibration.PixelDistance}"/></StackPanel>
-          <StackPanel Grid.Column="1" Margin="5,0,0,0"><TextBlock Text="µm / pixel" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.Calibration.MicrometersPerPixel}"/></StackPanel>
+          <StackPanel Margin="0,0,5,0"><TextBlock Text="Pixel distance" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.Calibration.PixelDistance}" ToolTip="보정 기준선의 픽셀 길이입니다."/></StackPanel>
+          <StackPanel Grid.Column="1" Margin="5,0,0,0"><TextBlock Text="µm / pixel" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.Calibration.MicrometersPerPixel}" ToolTip="픽셀 1개가 나타내는 실제 길이(µm)입니다."/></StackPanel>
          </Grid>
         </StackPanel>
        </GroupBox>
@@ -154,7 +175,8 @@
      <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition/></Grid.RowDefinitions>
      <Border Padding="12,9" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1">
       <DockPanel>
-       <Button DockPanel.Dock="Right" Content="선택 객체 포함/제외" Command="{Binding ToggleObjectCommand}" Padding="10,4"/>
+       <Button DockPanel.Dock="Right" Content="선택 객체 포함/제외" Command="{Binding ToggleObjectCommand}" Padding="10,4"
+        ToolTip="DataGrid에서 선택한 객체의 자동 판정을 수동으로 뒤집습니다."/>
        <TextBlock Text="{Binding SummaryText}" FontWeight="SemiBold" VerticalAlignment="Center"/>
       </DockPanel>
      </Border>
@@ -164,14 +186,30 @@
       <DataGrid.Columns>
        <DataGridTextColumn Header="ID" Binding="{Binding ObjectId}" Width="55"/>
        <DataGridCheckBoxColumn Header="Accepted" Binding="{Binding FinalAccepted, Mode=OneWay}" Width="75"/>
-       <DataGridTextColumn Header="Area (px²)" Binding="{Binding AreaPixel2, StringFormat=F2}" Width="90"/>
-       <DataGridTextColumn Header="Eq. diameter (px)" Binding="{Binding EquivalentDiameterPixel, StringFormat=F2}" Width="110"/>
-       <DataGridTextColumn Header="Perimeter (px)" Binding="{Binding PerimeterPixel, StringFormat=F2}" Width="100"/>
-       <DataGridTextColumn Header="Circularity" Binding="{Binding Circularity, StringFormat=F3}" Width="85"/>
-       <DataGridTextColumn Header="Solidity" Binding="{Binding Solidity, StringFormat=F3}" Width="80"/>
-       <DataGridTextColumn Header="Mean GV" Binding="{Binding MeanGv, StringFormat=F1}" Width="80"/>
-       <DataGridCheckBoxColumn Header="Border" Binding="{Binding TouchesBorder}" Width="65"/>
-       <DataGridTextColumn Header="Rejected by" Binding="{Binding RejectionSummary}" Width="*"/>
+       <DataGridTextColumn Header="Area (px²)" Binding="{Binding AreaPixel2, StringFormat=F2}" Width="90">
+        <DataGridTextColumn.HeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="ToolTip" Value="객체 contour 내부의 면적(pixel²)"/></Style></DataGridTextColumn.HeaderStyle>
+       </DataGridTextColumn>
+       <DataGridTextColumn Header="Eq. diameter (px)" Binding="{Binding EquivalentDiameterPixel, StringFormat=F2}" Width="110">
+        <DataGridTextColumn.HeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="ToolTip" Value="동일한 면적을 가진 원의 직경: 2 × sqrt(Area / π)"/></Style></DataGridTextColumn.HeaderStyle>
+       </DataGridTextColumn>
+       <DataGridTextColumn Header="Perimeter (px)" Binding="{Binding PerimeterPixel, StringFormat=F2}" Width="100">
+        <DataGridTextColumn.HeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="ToolTip" Value="객체 contour를 따라 측정한 둘레(pixel)"/></Style></DataGridTextColumn.HeaderStyle>
+       </DataGridTextColumn>
+       <DataGridTextColumn Header="Circularity" Binding="{Binding Circularity, StringFormat=F3}" Width="85">
+        <DataGridTextColumn.HeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="ToolTip" Value="4π × Area / Perimeter². 원에 가까울수록 1에 가까움"/></Style></DataGridTextColumn.HeaderStyle>
+       </DataGridTextColumn>
+       <DataGridTextColumn Header="Solidity" Binding="{Binding Solidity, StringFormat=F3}" Width="80">
+        <DataGridTextColumn.HeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="ToolTip" Value="Area / ConvexHullArea. 오목함이 적을수록 1에 가까움"/></Style></DataGridTextColumn.HeaderStyle>
+       </DataGridTextColumn>
+       <DataGridTextColumn Header="Mean GV" Binding="{Binding MeanGv, StringFormat=F1}" Width="80">
+        <DataGridTextColumn.HeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="ToolTip" Value="객체 내부 픽셀의 평균 Gray Value"/></Style></DataGridTextColumn.HeaderStyle>
+       </DataGridTextColumn>
+       <DataGridCheckBoxColumn Header="Border" Binding="{Binding TouchesBorder}" Width="65">
+        <DataGridCheckBoxColumn.HeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="ToolTip" Value="객체가 분석 ROI 경계에 닿았는지 여부"/></Style></DataGridCheckBoxColumn.HeaderStyle>
+       </DataGridCheckBoxColumn>
+       <DataGridTextColumn Header="Rejected by" Binding="{Binding RejectionSummary}" Width="*">
+        <DataGridTextColumn.HeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="ToolTip" Value="자동 판정에서 객체를 제외한 조건 목록"/></Style></DataGridTextColumn.HeaderStyle>
+       </DataGridTextColumn>
       </DataGrid.Columns>
      </DataGrid>
     </Grid>
