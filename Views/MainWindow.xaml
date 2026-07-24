@@ -51,21 +51,43 @@
        <TextBlock Text="IMAGE VIEWER" Foreground="#E4E6E8" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"/>
        <ComboBox ItemsSource="{Binding ViewerModes}" SelectedItem="{Binding ViewerMode}" Width="140"
         ToolTip="Original: 원본&#x0a;Preprocessed: 전처리 결과&#x0a;BinaryMask: 분할 마스크&#x0a;Overlay: 통과/제외 객체 윤곽과 ID"/>
+       <Separator Margin="8,0" Background="#51565A"/>
+       <ComboBox ItemsSource="{Binding ViewerTools}" SelectedItem="{Binding ViewerTool}" Width="125"
+        ToolTip="SelectAndRoi: 클릭하여 객체 선택, 드래그하여 ROI 지정&#x0a;Pan: 드래그하여 확대된 이미지 이동&#x0a;ZoomArea: 원하는 영역을 드래그하여 확대"/>
+       <Button Content="−" Click="ZoomOut_OnClick" Padding="10,3" Margin="7,0,3,0"
+        ToolTip="화면 중심을 기준으로 축소합니다. 마우스 휠 아래와 같습니다."/>
+       <Button Content="+" Click="ZoomIn_OnClick" Padding="10,3" Margin="0,0,3,0"
+        ToolTip="화면 중심을 기준으로 확대합니다. 마우스 휠 위와 같습니다."/>
+       <Button Content="맞춤" Click="Fit_OnClick" Padding="10,3" Margin="0,0,3,0"
+        ToolTip="전체 이미지가 Viewer 안에 보이도록 확대/이동을 초기화합니다."/>
+       <Button Content="100%" Click="ActualSize_OnClick" Padding="10,3" Margin="0"
+        ToolTip="이미지 1픽셀을 화면 1픽셀 크기로 표시합니다."/>
       </DockPanel>
      </Border>
      <Border x:Name="ImageHost" Grid.Row="1" Background="#17191B"
       SizeChanged="ImageHost_OnSizeChanged"
+      MouseWheel="ImageHost_OnMouseWheel"
       MouseLeftButtonDown="ImageHost_OnMouseLeftButtonDown"
       MouseMove="ImageHost_OnMouseMove"
       MouseLeftButtonUp="ImageHost_OnMouseLeftButtonUp">
       <Grid ClipToBounds="True">
-       <Image Source="{Binding DisplayImage}" Stretch="Uniform" SnapsToDevicePixels="True"/>
-       <Canvas x:Name="RoiCanvas" IsHitTestVisible="False">
-       <Rectangle x:Name="RoiRectangle" Stroke="#F0F0F0" StrokeThickness="1.5"
-         StrokeDashArray="5,3" Fill="#18FFFFFF" Visibility="Collapsed"/>
-        <Rectangle x:Name="SelectionRectangle" Stroke="#FFFFFF" StrokeThickness="2"
-         Fill="#12FFFFFF" Visibility="Collapsed"/>
-       </Canvas>
+       <Grid x:Name="ViewportContent" IsHitTestVisible="False" RenderTransformOrigin="0,0">
+        <Grid.RenderTransform>
+         <TransformGroup>
+          <ScaleTransform x:Name="ViewerScaleTransform" ScaleX="1" ScaleY="1"/>
+          <TranslateTransform x:Name="ViewerTranslateTransform"/>
+         </TransformGroup>
+        </Grid.RenderTransform>
+        <Image Source="{Binding DisplayImage}" Stretch="Uniform" SnapsToDevicePixels="True"/>
+        <Canvas x:Name="RoiCanvas">
+         <Rectangle x:Name="RoiRectangle" Stroke="#F0F0F0" StrokeThickness="1.5"
+          StrokeDashArray="5,3" Fill="#18FFFFFF" Visibility="Collapsed"/>
+         <Rectangle x:Name="SelectionRectangle" Stroke="#FFFFFF" StrokeThickness="2"
+          Fill="#12FFFFFF" Visibility="Collapsed"/>
+         <Rectangle x:Name="ZoomAreaRectangle" Stroke="#FFFFFF" StrokeThickness="1.5"
+          StrokeDashArray="3,2" Fill="#20FFFFFF" Visibility="Collapsed"/>
+        </Canvas>
+       </Grid>
        <TextBlock Text="이미지를 열어주세요" Foreground="#A8ADB1" FontSize="15"
         HorizontalAlignment="Center" VerticalAlignment="Center">
         <TextBlock.Style>

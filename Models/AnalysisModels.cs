@@ -6,6 +6,7 @@ public enum ThresholdMode { InRange, Binary, Otsu }
 public enum BorderObjectRule { Include, Exclude, Mark }
 public enum ManualOverrideType { None, Include, Exclude }
 public enum ViewerMode { Original, Preprocessed, BinaryMask, Overlay }
+public enum ViewerTool { SelectAndRoi, Pan, ZoomArea }
 
 public sealed class RangeFilter
 {

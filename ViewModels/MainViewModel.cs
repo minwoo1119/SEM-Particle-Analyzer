@@ -25,6 +25,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     private string _statusText = "이미지를 열어 분석을 시작하세요.";
     private bool _isBusy;
     private ViewerMode _viewerMode = ViewerMode.Original;
+    private ViewerTool _viewerTool = ViewerTool.SelectAndRoi;
     private ParticleMeasurement? _selectedObject;
 
     public MainViewModel()
@@ -47,6 +48,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public Array ThresholdModes => Enum.GetValues<ThresholdMode>();
     public Array BorderRules => Enum.GetValues<BorderObjectRule>();
     public Array ViewerModes => Enum.GetValues<ViewerMode>();
+    public Array ViewerTools => Enum.GetValues<ViewerTool>();
     public AsyncRelayCommand OpenImageCommand { get; }
     public AsyncRelayCommand AnalyzeCommand { get; }
     public RelayCommand CancelCommand { get; }
@@ -70,6 +72,11 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     {
         get => _viewerMode;
         set { if (SetProperty(ref _viewerMode, value)) RefreshDisplay(); }
+    }
+    public ViewerTool ViewerTool
+    {
+        get => _viewerTool;
+        set => SetProperty(ref _viewerTool, value);
     }
     public ParticleMeasurement? SelectedObject
     {
