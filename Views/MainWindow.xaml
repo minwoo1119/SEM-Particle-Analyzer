@@ -109,7 +109,7 @@
           </TextBlock>
           <TextBlock Foreground="#D8DDE0" FontSize="11">
            <Run Text="Mean GV "/><Run Text="{Binding MeanGv, StringFormat=F1}"/><Run Text="   Accepted "/>
-           <Run Text="{Binding FinalAccepted}"/>
+           <Run Text="{Binding FinalAccepted, Mode=OneWay}"/>
           </TextBlock>
          </StackPanel>
         </Border>
@@ -285,7 +285,7 @@
          <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <StackPanel><TextBlock Text="OBJECT" Foreground="{StaticResource Muted}" FontSize="10"/><TextBlock Text="{Binding ObjectId, StringFormat=ID {0}}" FontWeight="SemiBold"/></StackPanel>
-        <StackPanel Grid.Column="1"><TextBlock Text="JUDGEMENT" Foreground="{StaticResource Muted}" FontSize="10"/><TextBlock Text="{Binding FinalAccepted, StringFormat=Accepted: {0}}"/></StackPanel>
+        <StackPanel Grid.Column="1"><TextBlock Text="JUDGEMENT" Foreground="{StaticResource Muted}" FontSize="10"/><TextBlock Text="{Binding FinalAccepted, Mode=OneWay, StringFormat=Accepted: {0}}"/></StackPanel>
         <StackPanel Grid.Column="2"><TextBlock Text="CENTROID (PX)" Foreground="{StaticResource Muted}" FontSize="10"/><TextBlock><Run Text="{Binding CentroidXPixel, StringFormat=F1}"/><Run Text=", "/><Run Text="{Binding CentroidYPixel, StringFormat=F1}"/></TextBlock></StackPanel>
         <StackPanel Grid.Column="3"><TextBlock Text="AREA (PX²)" Foreground="{StaticResource Muted}" FontSize="10"/><TextBlock Text="{Binding AreaPixel2, StringFormat=F2}"/></StackPanel>
         <StackPanel Grid.Column="4"><TextBlock Text="AREA (µm²)" Foreground="{StaticResource Muted}" FontSize="10"/><TextBlock Text="{Binding AreaUm2, TargetNullValue=-, StringFormat=F3}"/></StackPanel>
