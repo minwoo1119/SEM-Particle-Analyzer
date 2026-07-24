@@ -52,8 +52,15 @@
        <ComboBox ItemsSource="{Binding ViewerModes}" SelectedItem="{Binding ViewerMode}" Width="140"
         ToolTip="Original: 원본&#x0a;Preprocessed: 전처리 결과&#x0a;BinaryMask: 분할 마스크&#x0a;Overlay: 통과/제외 객체 윤곽과 ID"/>
        <Separator Margin="8,0" Background="#51565A"/>
-       <ComboBox ItemsSource="{Binding ViewerTools}" SelectedItem="{Binding ViewerTool}" Width="125"
-        ToolTip="SelectAndRoi: 클릭하여 객체 선택, 드래그하여 ROI 지정&#x0a;Pan: 드래그하여 확대된 이미지 이동&#x0a;ZoomArea: 원하는 영역을 드래그하여 확대"/>
+       <ToggleButton x:Name="SelectRoiToolButton" Content="선택 / ROI" IsChecked="True"
+        Style="{StaticResource ViewerToolButton}" Click="SelectRoiToolButton_OnClick"
+        ToolTip="짧게 클릭하면 검출 객체를 선택하고, 드래그하면 분석 ROI를 지정합니다."/>
+       <ToggleButton x:Name="PanToolButton" Content="이동"
+        Style="{StaticResource ViewerToolButton}" Click="PanToolButton_OnClick"
+        ToolTip="확대된 이미지를 드래그하여 이동합니다."/>
+       <ToggleButton x:Name="ZoomAreaToolButton" Content="영역 확대"
+        Style="{StaticResource ViewerToolButton}" Click="ZoomAreaToolButton_OnClick"
+        ToolTip="확대할 사각 영역을 드래그합니다."/>
        <Button Content="−" Click="ZoomOut_OnClick" Padding="10,3" Margin="7,0,3,0"
         ToolTip="화면 중심을 기준으로 축소합니다. 마우스 휠 아래와 같습니다."/>
        <Button Content="+" Click="ZoomIn_OnClick" Padding="10,3" Margin="0,0,3,0"
@@ -80,12 +87,12 @@
         </Grid.RenderTransform>
         <Image Source="{Binding DisplayImage}" Stretch="Uniform" SnapsToDevicePixels="True"/>
         <Canvas x:Name="RoiCanvas">
-         <Rectangle x:Name="RoiRectangle" Stroke="#F0F0F0" StrokeThickness="1.5"
-          StrokeDashArray="5,3" Fill="#18FFFFFF" Visibility="Collapsed"/>
-         <Rectangle x:Name="SelectionRectangle" Stroke="#FFFFFF" StrokeThickness="2"
-          Fill="#12FFFFFF" Visibility="Collapsed"/>
-         <Rectangle x:Name="ZoomAreaRectangle" Stroke="#FFFFFF" StrokeThickness="1.5"
-          StrokeDashArray="3,2" Fill="#20FFFFFF" Visibility="Collapsed"/>
+         <Rectangle x:Name="RoiRectangle" Stroke="#FFD54F" StrokeThickness="2.5"
+          StrokeDashArray="6,3" Fill="#16FFD54F" Visibility="Collapsed"/>
+         <Rectangle x:Name="SelectionRectangle" Stroke="#00E5FF" StrokeThickness="3"
+          Fill="#2800E5FF" Visibility="Collapsed"/>
+         <Rectangle x:Name="ZoomAreaRectangle" Stroke="#FFFFFF" StrokeThickness="2"
+          StrokeDashArray="4,2" Fill="#30FFD54F" Visibility="Collapsed"/>
         </Canvas>
        </Grid>
        <TextBlock Text="이미지를 열어주세요" Foreground="#A8ADB1" FontSize="15"
@@ -101,6 +108,18 @@
          </Style>
         </TextBlock.Style>
        </TextBlock>
+       <Border HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10"
+        Background="#D91B1E20" BorderBrush="#555A5E" BorderThickness="1" Padding="9,6"
+        IsHitTestVisible="False">
+        <StackPanel Orientation="Horizontal">
+         <TextBlock Text="●" Foreground="#46E669" Margin="0,0,4,0"/>
+         <TextBlock Text="Accepted" Foreground="#E3E6E8" FontSize="11" Margin="0,0,10,0"/>
+         <TextBlock Text="●" Foreground="#FF5F32" Margin="0,0,4,0"/>
+         <TextBlock Text="Rejected" Foreground="#E3E6E8" FontSize="11" Margin="0,0,10,0"/>
+         <TextBlock Text="□" Foreground="#00E5FF" FontWeight="Bold" Margin="0,0,4,0"/>
+         <TextBlock Text="Selected" Foreground="#E3E6E8" FontSize="11"/>
+        </StackPanel>
+       </Border>
       </Grid>
      </Border>
     </Grid>

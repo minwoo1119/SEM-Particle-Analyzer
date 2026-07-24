@@ -202,6 +202,26 @@ public partial class MainWindow : Window
 
     private void Fit_OnClick(object sender, RoutedEventArgs e) => ResetView();
 
+    private void SelectRoiToolButton_OnClick(object sender, RoutedEventArgs e) =>
+        SetViewerTool(ViewerTool.SelectAndRoi);
+
+    private void PanToolButton_OnClick(object sender, RoutedEventArgs e) =>
+        SetViewerTool(ViewerTool.Pan);
+
+    private void ZoomAreaToolButton_OnClick(object sender, RoutedEventArgs e) =>
+        SetViewerTool(ViewerTool.ZoomArea);
+
+    private void SetViewerTool(ViewerTool tool)
+    {
+        _viewModel.ViewerTool = tool;
+        SelectRoiToolButton.IsChecked = tool == ViewerTool.SelectAndRoi;
+        PanToolButton.IsChecked = tool == ViewerTool.Pan;
+        ZoomAreaToolButton.IsChecked = tool == ViewerTool.ZoomArea;
+        ImageHost.Cursor = tool == ViewerTool.Pan ? Cursors.Hand : Cursors.Cross;
+        RoiRectangle.Visibility = Visibility.Collapsed;
+        ZoomAreaRectangle.Visibility = Visibility.Collapsed;
+    }
+
     private void ActualSize_OnClick(object sender, RoutedEventArgs e)
     {
         var rect = GetDisplayedImageRect();

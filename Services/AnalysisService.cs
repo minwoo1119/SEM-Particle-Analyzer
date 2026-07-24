@@ -171,17 +171,23 @@ public sealed class AnalysisService : IAnalysisService
             Cv2.Normalize(overlay, normalized, 0, 255, NormTypes.MinMax, MatType.CV_8UC3.Value);
             normalized.CopyTo(overlay);
         }
-        Cv2.Rectangle(overlay, roi, new Scalar(210, 210, 210), 2);
+        // 분석 ROI: 밝은 노랑. 밝거나 어두운 SEM 영상 모두에서 식별하기 쉽도록 2 px로 표시한다.
+        Cv2.Rectangle(overlay, roi, new Scalar(40, 220, 255), 2, LineTypes.AntiAlias);
         Cv2.FindContours(mask, out var contours, out _, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
         foreach (var contour in contours)
         {
             var b = Cv2.BoundingRect(contour);
             var item = objects.FirstOrDefault(o => o.BoundingBoxX == b.X && o.BoundingBoxY == b.Y);
             if (item is null) continue;
-            var color = item.FinalAccepted ? new Scalar(86, 174, 102) : new Scalar(82, 82, 200);
-            Cv2.DrawContours(overlay, [contour], -1, color, 1, LineTypes.AntiAlias);
-            Cv2.PutText(overlay, item.ObjectId.ToString(), new Point(b.X, Math.Max(10, b.Y - 3)),
-                HersheyFonts.HersheySimplex, .35, color, 1, LineTypes.AntiAlias);
+            // Accepted는 밝은 초록, Rejected는 주황-빨강으로 고정한다.
+            var color = item.FinalAccepted ? new Scalar(70, 230, 105) : new Scalar(50, 95, 255);
+            Cv2.DrawContours(overlay, [contour], -1, new Scalar(20, 20, 20), 4, LineTypes.AntiAlias);
+            Cv2.DrawContours(overlay, [contour], -1, color, 2, LineTypes.AntiAlias);
+            var labelPoint = new Point(b.X, Math.Max(12, b.Y - 4));
+            Cv2.PutText(overlay, item.ObjectId.ToString(), labelPoint,
+                HersheyFonts.HersheySimplex, .42, new Scalar(15, 15, 15), 3, LineTypes.AntiAlias);
+            Cv2.PutText(overlay, item.ObjectId.ToString(), labelPoint,
+                HersheyFonts.HersheySimplex, .42, color, 1, LineTypes.AntiAlias);
         }
         return overlay;
     }
