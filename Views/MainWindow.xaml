@@ -95,6 +95,25 @@
           StrokeDashArray="4,2" Fill="#30FFD54F" Visibility="Collapsed"/>
         </Canvas>
        </Grid>
+       <Canvas x:Name="ViewerHudCanvas" IsHitTestVisible="False">
+        <Border x:Name="SelectionInfoPopup" Visibility="Collapsed"
+         Background="#F21B1E20" BorderBrush="#00E5FF" BorderThickness="1"
+         CornerRadius="2" Padding="9,6" DataContext="{Binding SelectedObject}">
+         <StackPanel>
+          <TextBlock Foreground="White" FontWeight="SemiBold">
+           <Run Text="Blob "/><Run Text="{Binding ObjectId}"/>
+          </TextBlock>
+          <TextBlock Foreground="#D8DDE0" FontSize="11">
+           <Run Text="Area "/><Run Text="{Binding AreaPixel2, StringFormat=F2}"/><Run Text=" px²   "/>
+           <Run Text="Eq.D "/><Run Text="{Binding EquivalentDiameterPixel, StringFormat=F2}"/><Run Text=" px"/>
+          </TextBlock>
+          <TextBlock Foreground="#D8DDE0" FontSize="11">
+           <Run Text="Mean GV "/><Run Text="{Binding MeanGv, StringFormat=F1}"/><Run Text="   Accepted "/>
+           <Run Text="{Binding FinalAccepted}"/>
+          </TextBlock>
+         </StackPanel>
+        </Border>
+       </Canvas>
        <TextBlock Text="이미지를 열어주세요" Foreground="#A8ADB1" FontSize="15"
         HorizontalAlignment="Center" VerticalAlignment="Center">
         <TextBlock.Style>

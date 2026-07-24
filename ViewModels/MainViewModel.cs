@@ -110,12 +110,20 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
     public bool SelectObjectAt(double imageX, double imageY)
     {
-        if (Objects.Count == 0) return false;
+        if (Objects.Count == 0)
+        {
+            SelectedObject = null;
+            return false;
+        }
         var selected = Objects
             .Where(x => ContainsPoint(x, imageX, imageY))
             .OrderBy(x => x.BoundingBoxWidth * x.BoundingBoxHeight)
             .FirstOrDefault();
-        if (selected is null) return false;
+        if (selected is null)
+        {
+            SelectedObject = null;
+            return false;
+        }
         SelectedObject = selected;
         StatusText = $"객체 {selected.ObjectId}: Area {selected.AreaPixel2:F2} px², Mean GV {selected.MeanGv:F1}, " +
                      (selected.FinalAccepted ? "Accepted" : $"Rejected ({selected.RejectionSummary})");

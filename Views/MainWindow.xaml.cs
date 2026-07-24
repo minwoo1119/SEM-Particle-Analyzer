@@ -56,6 +56,7 @@ public partial class MainWindow : Window
             var current = e.GetPosition(ImageHost);
             ViewerTranslateTransform.X = _panStartX + current.X - _panStart.Value.X;
             ViewerTranslateTransform.Y = _panStartY + current.Y - _panStart.Value.Y;
+            UpdateSelectionInfoPopup();
             return;
         }
         if (_dragStart is null || e.LeftButton != MouseButtonState.Pressed) return;
@@ -127,6 +128,7 @@ public partial class MainWindow : Window
         if (item is null || displayed.IsEmpty || _viewModel.ImagePixelWidth <= 0)
         {
             SelectionContour.Visibility = Visibility.Collapsed;
+            SelectionInfoPopup.Visibility = Visibility.Collapsed;
             return;
         }
         var scaleX = displayed.Width / _viewModel.ImagePixelWidth;
@@ -147,6 +149,29 @@ public partial class MainWindow : Window
             };
         }
         SelectionContour.Visibility = Visibility.Visible;
+        UpdateSelectionInfoPopup();
+    }
+
+    private void UpdateSelectionInfoPopup()
+    {
+        var item = _viewModel.SelectedObject;
+        var displayed = GetDisplayedImageRect();
+        if (item is null || displayed.IsEmpty)
+        {
+            SelectionInfoPopup.Visibility = Visibility.Collapsed;
+            return;
+        }
+        var scaleX = displayed.Width / _viewModel.ImagePixelWidth;
+        var scaleY = displayed.Height / _viewModel.ImagePixelHeight;
+        var anchor = ToHostPoint(new Point(
+            displayed.Left + (item.BoundingBoxX + item.BoundingBoxWidth) * scaleX,
+            displayed.Top + item.BoundingBoxY * scaleY));
+        const double estimatedWidth = 205;
+        var left = anchor.X + 8;
+        if (left + estimatedWidth > ImageHost.ActualWidth) left = anchor.X - estimatedWidth - 8;
+        Canvas.SetLeft(SelectionInfoPopup, Math.Max(4, left));
+        Canvas.SetTop(SelectionInfoPopup, Math.Clamp(anchor.Y, 4, Math.Max(4, ImageHost.ActualHeight - 75)));
+        SelectionInfoPopup.Visibility = Visibility.Visible;
     }
 
     private static void UpdateDragRectangle(System.Windows.Shapes.Rectangle rectangle, Point first, Point second)
@@ -253,6 +278,7 @@ public partial class MainWindow : Window
         ViewerTranslateTransform.X = hostAnchor.X - contentAnchor.X * newZoom;
         ViewerTranslateTransform.Y = hostAnchor.Y - contentAnchor.Y * newZoom;
         UpdateOverlayStrokeWidths();
+        UpdateSelectionInfoPopup();
     }
 
     private void ZoomToArea(Point firstHost, Point secondHost)
@@ -269,6 +295,7 @@ public partial class MainWindow : Window
         ViewerTranslateTransform.X = ImageHost.ActualWidth / 2 - contentCenter.X * newZoom;
         ViewerTranslateTransform.Y = ImageHost.ActualHeight / 2 - contentCenter.Y * newZoom;
         UpdateOverlayStrokeWidths();
+        UpdateSelectionInfoPopup();
     }
 
     private void ResetView()
@@ -278,6 +305,7 @@ public partial class MainWindow : Window
         ViewerTranslateTransform.X = 0;
         ViewerTranslateTransform.Y = 0;
         UpdateOverlayStrokeWidths();
+        UpdateSelectionInfoPopup();
     }
 
     private void UpdateOverlayStrokeWidths()

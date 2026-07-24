@@ -183,11 +183,6 @@ public sealed class AnalysisService : IAnalysisService
             var color = item.FinalAccepted ? new Scalar(70, 230, 105) : new Scalar(50, 95, 255);
             Cv2.DrawContours(overlay, [contour], -1, new Scalar(15, 15, 15), 2, LineTypes.AntiAlias);
             Cv2.DrawContours(overlay, [contour], -1, color, 1, LineTypes.AntiAlias);
-            var labelPoint = new Point(b.X, Math.Max(12, b.Y - 4));
-            Cv2.PutText(overlay, item.ObjectId.ToString(), labelPoint,
-                HersheyFonts.HersheySimplex, .42, new Scalar(15, 15, 15), 3, LineTypes.AntiAlias);
-            Cv2.PutText(overlay, item.ObjectId.ToString(), labelPoint,
-                HersheyFonts.HersheySimplex, .42, color, 1, LineTypes.AntiAlias);
         }
         return overlay;
     }

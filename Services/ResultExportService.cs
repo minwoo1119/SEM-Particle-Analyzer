@@ -30,7 +30,8 @@ public sealed class ResultExportService : IResultExportService
         Cv2.ImWrite(Path.Combine(imagesDir, "original.png"), source);
         Cv2.ImWrite(Path.Combine(imagesDir, "preprocessed.png"), result.Preprocessed);
         Cv2.ImWrite(Path.Combine(imagesDir, "binary_mask.png"), result.BinaryMask);
-        Cv2.ImWrite(Path.Combine(imagesDir, "detection_overlay.png"), result.Overlay);
+        using (var labeledOverlay = CreateLabeledOverlay(result))
+            Cv2.ImWrite(Path.Combine(imagesDir, "detection_overlay.png"), labeledOverlay);
 
         await WriteJsonAsync(Path.Combine(dataDir, "analysis_settings.json"), settings, token);
         await WriteJsonAsync(Path.Combine(dataDir, "objects.json"), result.Objects, token);
@@ -110,6 +111,21 @@ public sealed class ResultExportService : IResultExportService
             var next = $"{candidate}_{i}";
             if (!Directory.Exists(next)) return next;
         }
+    }
+
+    private static Mat CreateLabeledOverlay(AnalysisResult result)
+    {
+        var labeled = result.Overlay.Clone();
+        foreach (var item in result.Objects)
+        {
+            var color = item.FinalAccepted ? new Scalar(70, 230, 105) : new Scalar(50, 95, 255);
+            var point = new Point(item.BoundingBoxX, Math.Max(12, item.BoundingBoxY - 4));
+            Cv2.PutText(labeled, item.ObjectId.ToString(CultureInfo.InvariantCulture), point,
+                HersheyFonts.HersheySimplex, .42, new Scalar(15, 15, 15), 3, LineTypes.AntiAlias);
+            Cv2.PutText(labeled, item.ObjectId.ToString(CultureInfo.InvariantCulture), point,
+                HersheyFonts.HersheySimplex, .42, color, 1, LineTypes.AntiAlias);
+        }
+        return labeled;
     }
 }
 
