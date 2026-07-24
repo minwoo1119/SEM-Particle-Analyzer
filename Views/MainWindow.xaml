@@ -163,7 +163,7 @@
       HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0" RowHeaderWidth="0">
       <DataGrid.Columns>
        <DataGridTextColumn Header="ID" Binding="{Binding ObjectId}" Width="55"/>
-       <DataGridCheckBoxColumn Header="Accepted" Binding="{Binding FinalAccepted}" Width="75"/>
+       <DataGridCheckBoxColumn Header="Accepted" Binding="{Binding FinalAccepted, Mode=OneWay}" Width="75"/>
        <DataGridTextColumn Header="Area (px²)" Binding="{Binding AreaPixel2, StringFormat=F2}" Width="90"/>
        <DataGridTextColumn Header="Eq. diameter (px)" Binding="{Binding EquivalentDiameterPixel, StringFormat=F2}" Width="110"/>
        <DataGridTextColumn Header="Perimeter (px)" Binding="{Binding PerimeterPixel, StringFormat=F2}" Width="100"/>
