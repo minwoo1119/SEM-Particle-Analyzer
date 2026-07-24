@@ -133,10 +133,12 @@ public sealed class AnalysisService : IAnalysisService
                 BoundingBoxX = bounds.X, BoundingBoxY = bounds.Y,
                 BoundingBoxWidth = bounds.Width, BoundingBoxHeight = bounds.Height,
                 AreaPixel2 = area,
-                AreaUm2 = settings.Calibration.MicrometersPerPixel is { } scale ? area * scale * scale : null,
+                AreaUm2 = settings.Calibration.Enabled && settings.Calibration.MicrometersPerPixel is > 0
+                    ? area * settings.Calibration.MicrometersPerPixel.Value * settings.Calibration.MicrometersPerPixel.Value : null,
                 PerimeterPixel = perimeter,
                 EquivalentDiameterPixel = equivalent,
-                EquivalentDiameterUm = settings.Calibration.MicrometersPerPixel is { } s ? equivalent * s : null,
+                EquivalentDiameterUm = settings.Calibration.Enabled && settings.Calibration.MicrometersPerPixel is > 0
+                    ? equivalent * settings.Calibration.MicrometersPerPixel.Value : null,
                 Circularity = circularity, Solidity = solidity,
                 MeanGv = mean.Val0, MinGv = min, MaxGv = max, StdDevGv = std.Val0,
                 TouchesBorder = touches

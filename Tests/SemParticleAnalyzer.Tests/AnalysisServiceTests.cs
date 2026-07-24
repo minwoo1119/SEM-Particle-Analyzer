@@ -49,4 +49,25 @@ public sealed class AnalysisServiceTests
         Assert.False(particle.FinalAccepted);
         Assert.Contains("BorderContact", particle.RejectedBy);
     }
+
+    [Fact]
+    public async Task Analyze_ConvertsPixelMeasurementsWithEnabledCalibration()
+    {
+        using var image = Mat.Zeros(new Size(100, 100), MatType.CV_8UC1).ToMat();
+        Cv2.Circle(image, new Point(50, 50), 10, Scalar.White, -1);
+        var settings = new AnalysisSettings
+        {
+            Roi = new RectangleRoi { Width = 100, Height = 100 },
+            MinimumGv = 200,
+            MaximumGv = 255,
+            AreaFilter = new RangeFilter(),
+            Calibration = new ScaleCalibration { Enabled = true, MicrometersPerPixel = 0.5 }
+        };
+
+        using var result = await new AnalysisService().AnalyzeAsync(image, settings, CancellationToken.None);
+
+        var particle = Assert.Single(result.Objects);
+        Assert.Equal(particle.AreaPixel2 * 0.25, particle.AreaUm2!.Value, 8);
+        Assert.Equal(particle.EquivalentDiameterPixel!.Value * 0.5, particle.EquivalentDiameterUm!.Value, 8);
+    }
 }

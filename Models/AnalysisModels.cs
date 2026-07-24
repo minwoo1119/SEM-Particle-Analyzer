@@ -7,6 +7,7 @@ public enum BorderObjectRule { Include, Exclude, Mark }
 public enum ManualOverrideType { None, Include, Exclude }
 public enum ViewerMode { Original, Preprocessed, BinaryMask, Overlay }
 public enum ViewerTool { SelectAndRoi, Pan, ZoomArea }
+public enum LengthUnit { Nanometer, Micrometer, Millimeter }
 
 public sealed class RangeFilter
 {
@@ -37,6 +38,9 @@ public sealed class RectangleRoi
 public sealed class ScaleCalibration
 {
     public bool Enabled { get; set; }
+    public double? ActualImageWidth { get; set; }
+    public double? ActualImageHeight { get; set; }
+    public LengthUnit InputUnit { get; set; } = LengthUnit.Micrometer;
     public double PixelDistance { get; set; }
     public double ActualLength { get; set; }
     public string Unit { get; set; } = "µm";

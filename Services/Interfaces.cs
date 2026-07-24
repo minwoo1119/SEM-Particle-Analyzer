@@ -24,3 +24,8 @@ public interface IAnalysisPresetService
     Task SaveAsync(string path, AnalysisSettings settings, CancellationToken cancellationToken);
     Task<AnalysisSettings> LoadAsync(string path, CancellationToken cancellationToken);
 }
+
+public interface ICalibrationService
+{
+    double CalculateImageScale(int pixelWidth, int pixelHeight, ScaleCalibration calibration);
+}

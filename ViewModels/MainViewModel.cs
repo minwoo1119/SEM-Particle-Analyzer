@@ -17,6 +17,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     private readonly IAnalysisService _analysisService;
     private readonly IResultExportService _exportService;
     private readonly IAnalysisPresetService _presetService;
+    private readonly ICalibrationService _calibrationService;
     private Mat? _source;
     private AnalysisResult? _result;
     private SourceImageInfo? _sourceInfo;
@@ -34,6 +35,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         _analysisService = new AnalysisService();
         _exportService = new ResultExportService();
         _presetService = new AnalysisPresetService();
+        _calibrationService = new CalibrationService();
         OpenImageCommand = new AsyncRelayCommand(OpenImageAsync, () => !IsBusy);
         AnalyzeCommand = new AsyncRelayCommand(AnalyzeAsync, () => _source is not null && !IsBusy);
         CancelCommand = new RelayCommand(Cancel, () => IsBusy);
@@ -41,6 +43,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         SavePresetCommand = new AsyncRelayCommand(SavePresetAsync, () => !IsBusy);
         LoadPresetCommand = new AsyncRelayCommand(LoadPresetAsync, () => !IsBusy);
         ToggleObjectCommand = new RelayCommand(ToggleSelectedObject, () => SelectedObject is not null);
+        CalculateScaleCommand = new RelayCommand(CalculateScale, () => _source is not null);
     }
 
     public AnalysisSettings Settings { get; private set; } = new();
@@ -49,6 +52,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public Array BorderRules => Enum.GetValues<BorderObjectRule>();
     public Array ViewerModes => Enum.GetValues<ViewerMode>();
     public Array ViewerTools => Enum.GetValues<ViewerTool>();
+    public Array LengthUnits => Enum.GetValues<LengthUnit>();
     public AsyncRelayCommand OpenImageCommand { get; }
     public AsyncRelayCommand AnalyzeCommand { get; }
     public RelayCommand CancelCommand { get; }
@@ -56,6 +60,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public AsyncRelayCommand SavePresetCommand { get; }
     public AsyncRelayCommand LoadPresetCommand { get; }
     public RelayCommand ToggleObjectCommand { get; }
+    public RelayCommand CalculateScaleCommand { get; }
 
     public BitmapSource? DisplayImage { get => _displayImage; private set => SetProperty(ref _displayImage, value); }
     public string StatusText { get => _statusText; private set => SetProperty(ref _statusText, value); }
@@ -210,6 +215,34 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         StatusText = $"객체 {SelectedObject.ObjectId}의 수동 판정을 변경했습니다.";
     }
 
+    private void CalculateScale()
+    {
+        if (_source is null) return;
+        try
+        {
+            var scale = _calibrationService.CalculateImageScale(_source.Width, _source.Height, Settings.Calibration);
+            Settings.Calibration.MicrometersPerPixel = scale;
+            Settings.Calibration.Enabled = true;
+            Settings.Calibration.PixelDistance = Settings.Calibration.ActualImageWidth is > 0 ? _source.Width : _source.Height;
+            Settings.Calibration.ActualLength = Settings.Calibration.ActualImageWidth
+                ?? Settings.Calibration.ActualImageHeight ?? 0;
+            Settings.Calibration.Unit = Settings.Calibration.InputUnit switch
+            {
+                LengthUnit.Nanometer => "nm",
+                LengthUnit.Millimeter => "mm",
+                _ => "µm"
+            };
+            Settings = CloneSettings(Settings);
+            OnPropertyChanged(nameof(Settings));
+            StatusText = $"Scale calibration 완료: {scale:G8} µm/pixel";
+        }
+        catch (Exception ex)
+        {
+            StatusText = ex.Message;
+            MessageBox.Show(ex.Message, "Scale calibration", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
     private async Task RunBusyAsync(Func<CancellationToken, Task> operation)
     {
         _analysisCancellation?.Dispose();
@@ -261,6 +294,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         ExportCommand.NotifyCanExecuteChanged();
         SavePresetCommand.NotifyCanExecuteChanged();
         LoadPresetCommand.NotifyCanExecuteChanged();
+        CalculateScaleCommand.NotifyCanExecuteChanged();
     }
 
     private static AnalysisSettings CloneSettings(AnalysisSettings settings) =>
