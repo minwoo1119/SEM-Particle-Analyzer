@@ -1,1 +1,6 @@
-<Solution />
+<Solution>
+  <Project Path="SEM Particle Analyzer.csproj" />
+  <Folder Name="/Tests/">
+    <Project Path="Tests/SemParticleAnalyzer.Tests/SemParticleAnalyzer.Tests.csproj" />
+  </Folder>
+</Solution>

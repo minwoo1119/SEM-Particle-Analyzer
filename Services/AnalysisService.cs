@@ -113,12 +113,12 @@ public sealed class AnalysisService : IAnalysisService
             var bounds = Cv2.BoundingRect(contour);
             var perimeter = Cv2.ArcLength(contour, true);
             var moments = Cv2.Moments(contour);
-            var equivalent = 2 * Math.Sqrt(area / Math.PI);
+            var equivalent = GeometryMeasurements.EquivalentDiameter(area)!.Value;
             var reliable = area >= settings.MinimumShapeMeasurementArea && perimeter > 0;
-            double? circularity = reliable ? 4 * Math.PI * area / (perimeter * perimeter) : null;
+            double? circularity = reliable ? GeometryMeasurements.Circularity(area, perimeter) : null;
             var hull = Cv2.ConvexHull(contour);
             var hullArea = hull.Length >= 3 ? Cv2.ContourArea(hull) : 0;
-            double? solidity = reliable && hullArea > 0 ? area / hullArea : null;
+            double? solidity = reliable ? GeometryMeasurements.Solidity(area, hullArea) : null;
             var touches = bounds.X <= roi.X || bounds.Y <= roi.Y || bounds.Right >= roi.Right || bounds.Bottom >= roi.Bottom;
 
             using var objectMask = Mat.Zeros(mask.Size(), MatType.CV_8UC1).ToMat();
