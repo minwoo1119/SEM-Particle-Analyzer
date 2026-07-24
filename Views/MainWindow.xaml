@@ -54,14 +54,17 @@
       </DockPanel>
      </Border>
      <Border x:Name="ImageHost" Grid.Row="1" Background="#17191B"
+      SizeChanged="ImageHost_OnSizeChanged"
       MouseLeftButtonDown="ImageHost_OnMouseLeftButtonDown"
       MouseMove="ImageHost_OnMouseMove"
       MouseLeftButtonUp="ImageHost_OnMouseLeftButtonUp">
       <Grid ClipToBounds="True">
        <Image Source="{Binding DisplayImage}" Stretch="Uniform" SnapsToDevicePixels="True"/>
        <Canvas x:Name="RoiCanvas" IsHitTestVisible="False">
-        <Rectangle x:Name="RoiRectangle" Stroke="#F0F0F0" StrokeThickness="1.5"
+       <Rectangle x:Name="RoiRectangle" Stroke="#F0F0F0" StrokeThickness="1.5"
          StrokeDashArray="5,3" Fill="#18FFFFFF" Visibility="Collapsed"/>
+        <Rectangle x:Name="SelectionRectangle" Stroke="#FFFFFF" StrokeThickness="2"
+         Fill="#12FFFFFF" Visibility="Collapsed"/>
        </Canvas>
        <TextBlock Text="이미지를 열어주세요" Foreground="#A8ADB1" FontSize="15"
         HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -83,7 +86,7 @@
 
    <Border Grid.Column="1" Grid.RowSpan="2" Margin="6,12,12,12" Background="White" BorderBrush="{StaticResource Line}" BorderThickness="1">
     <Grid>
-     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition/></Grid.RowDefinitions>
+     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition/></Grid.RowDefinitions>
      <Border Padding="12,10" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1">
       <TextBlock Text="ANALYSIS CONDITIONS" FontWeight="SemiBold" FontSize="11"/>
      </Border>
@@ -180,7 +183,48 @@
        <TextBlock Text="{Binding SummaryText}" FontWeight="SemiBold" VerticalAlignment="Center"/>
       </DockPanel>
      </Border>
-     <DataGrid Grid.Row="1" ItemsSource="{Binding Objects}" SelectedItem="{Binding SelectedObject}"
+     <Border Grid.Row="1" Background="#F8F9FA" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="12,8">
+      <Grid>
+       <TextBlock Text="이미지의 검출 영역 또는 아래 행을 클릭하면 상세 측정값이 표시됩니다."
+        Foreground="{StaticResource Muted}" VerticalAlignment="Center">
+        <TextBlock.Style>
+         <Style TargetType="TextBlock">
+          <Style.Triggers>
+           <DataTrigger Binding="{Binding SelectedObject}" Value="{x:Null}">
+            <Setter Property="Visibility" Value="Visible"/>
+           </DataTrigger>
+          </Style.Triggers>
+          <Setter Property="Visibility" Value="Collapsed"/>
+         </Style>
+        </TextBlock.Style>
+       </TextBlock>
+       <Grid DataContext="{Binding SelectedObject}">
+        <Grid.Style>
+         <Style TargetType="Grid">
+          <Setter Property="Visibility" Value="Visible"/>
+          <Style.Triggers>
+           <DataTrigger Binding="{Binding}" Value="{x:Null}">
+            <Setter Property="Visibility" Value="Collapsed"/>
+           </DataTrigger>
+          </Style.Triggers>
+         </Style>
+        </Grid.Style>
+        <Grid.ColumnDefinitions>
+         <ColumnDefinition Width="80"/><ColumnDefinition Width="120"/><ColumnDefinition Width="130"/>
+         <ColumnDefinition Width="110"/><ColumnDefinition Width="100"/><ColumnDefinition Width="100"/>
+         <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel><TextBlock Text="OBJECT" Foreground="{StaticResource Muted}" FontSize="10"/><TextBlock Text="{Binding ObjectId, StringFormat=ID {0}}" FontWeight="SemiBold"/></StackPanel>
+        <StackPanel Grid.Column="1"><TextBlock Text="JUDGEMENT" Foreground="{StaticResource Muted}" FontSize="10"/><TextBlock Text="{Binding FinalAccepted, StringFormat=Accepted: {0}}"/></StackPanel>
+        <StackPanel Grid.Column="2"><TextBlock Text="CENTROID (PX)" Foreground="{StaticResource Muted}" FontSize="10"/><TextBlock><Run Text="{Binding CentroidXPixel, StringFormat=F1}"/><Run Text=", "/><Run Text="{Binding CentroidYPixel, StringFormat=F1}"/></TextBlock></StackPanel>
+        <StackPanel Grid.Column="3"><TextBlock Text="AREA (PX²)" Foreground="{StaticResource Muted}" FontSize="10"/><TextBlock Text="{Binding AreaPixel2, StringFormat=F2}"/></StackPanel>
+        <StackPanel Grid.Column="4"><TextBlock Text="CIRCULARITY" Foreground="{StaticResource Muted}" FontSize="10"/><TextBlock Text="{Binding Circularity, TargetNullValue=Not reliable, StringFormat=F3}"/></StackPanel>
+        <StackPanel Grid.Column="5"><TextBlock Text="MEAN GV" Foreground="{StaticResource Muted}" FontSize="10"/><TextBlock Text="{Binding MeanGv, StringFormat=F1}"/></StackPanel>
+        <StackPanel Grid.Column="6"><TextBlock Text="REJECTED BY" Foreground="{StaticResource Muted}" FontSize="10"/><TextBlock Text="{Binding RejectionSummary, TargetNullValue=-}" TextTrimming="CharacterEllipsis"/></StackPanel>
+       </Grid>
+      </Grid>
+     </Border>
+     <DataGrid x:Name="ObjectDataGrid" Grid.Row="2" ItemsSource="{Binding Objects}" SelectedItem="{Binding SelectedObject}"
       AutoGenerateColumns="False" IsReadOnly="True" EnableRowVirtualization="True" EnableColumnVirtualization="True"
       HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0" RowHeaderWidth="0">
       <DataGrid.Columns>

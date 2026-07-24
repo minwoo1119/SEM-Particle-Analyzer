@@ -96,6 +96,21 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         StatusText = $"ROI: X {roi.X}, Y {roi.Y}, W {roi.Width}, H {roi.Height} px";
     }
 
+    public bool SelectObjectAt(double imageX, double imageY)
+    {
+        if (Objects.Count == 0) return false;
+        var selected = Objects
+            .Where(x => imageX >= x.BoundingBoxX && imageX <= x.BoundingBoxX + x.BoundingBoxWidth
+                     && imageY >= x.BoundingBoxY && imageY <= x.BoundingBoxY + x.BoundingBoxHeight)
+            .OrderBy(x => x.BoundingBoxWidth * x.BoundingBoxHeight)
+            .FirstOrDefault();
+        if (selected is null) return false;
+        SelectedObject = selected;
+        StatusText = $"객체 {selected.ObjectId}: Area {selected.AreaPixel2:F2} px², Mean GV {selected.MeanGv:F1}, " +
+                     (selected.FinalAccepted ? "Accepted" : $"Rejected ({selected.RejectionSummary})");
+        return true;
+    }
+
     private async Task OpenImageAsync()
     {
         var dialog = new OpenFileDialog
@@ -113,6 +128,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             _sourceInfo = loaded.Info;
             _result = null;
             Settings.Roi = new RectangleRoi { X = 0, Y = 0, Width = _source.Width, Height = _source.Height };
+            SelectedObject = null;
             Objects.Clear();
             ViewerMode = ViewerMode.Original;
             RefreshDisplay();
@@ -129,6 +145,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             _result?.Dispose();
             var snapshot = CloneSettings(Settings);
             _result = await _analysisService.AnalyzeAsync(_source, snapshot, token);
+            SelectedObject = null;
             Objects.Clear();
             foreach (var item in _result.Objects) Objects.Add(item);
             ViewerMode = ViewerMode.Overlay;
@@ -150,6 +167,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             _result = await _analysisService.AnalyzeAsync(_source, CloneSettings(Settings), token);
             var path = await _exportService.ExportAsync(dialog.FolderName, _source, _sourceInfo,
                 CloneSettings(Settings), _result, token);
+            SelectedObject = null;
             Objects.Clear();
             foreach (var item in _result.Objects) Objects.Add(item);
             RefreshDisplay();

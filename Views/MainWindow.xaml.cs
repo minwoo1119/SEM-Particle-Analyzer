@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.ComponentModel;
 using SemParticleAnalyzer.Models;
 using SemParticleAnalyzer.ViewModels;
 
@@ -16,6 +17,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = _viewModel;
+        _viewModel.PropertyChanged += ViewModel_OnPropertyChanged;
     }
 
     private void ImageHost_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -28,6 +30,8 @@ public partial class MainWindow : Window
         RoiRectangle.Visibility = Visibility.Visible;
         UpdateRoiRectangle(point, point);
     }
+
+    private void ImageHost_OnSizeChanged(object sender, SizeChangedEventArgs e) => UpdateSelectionRectangle();
 
     private void ImageHost_OnMouseMove(object sender, MouseEventArgs e)
     {
@@ -43,12 +47,48 @@ public partial class MainWindow : Window
         _dragStart = null;
         ImageHost.ReleaseMouseCapture();
         if (!TryMapToImage(start, out var imageStart) || !TryMapToImage(end, out var imageEnd)) return;
+        if (Math.Abs(start.X - end.X) < 4 && Math.Abs(start.Y - end.Y) < 4)
+        {
+            if (!_viewModel.SelectObjectAt(imageEnd.X, imageEnd.Y))
+                SelectionRectangle.Visibility = Visibility.Collapsed;
+            RoiRectangle.Visibility = Visibility.Collapsed;
+            return;
+        }
         var left = (int)Math.Floor(Math.Min(imageStart.X, imageEnd.X));
         var top = (int)Math.Floor(Math.Min(imageStart.Y, imageEnd.Y));
         var right = (int)Math.Ceiling(Math.Max(imageStart.X, imageEnd.X));
         var bottom = (int)Math.Ceiling(Math.Max(imageStart.Y, imageEnd.Y));
         if (right - left < 2 || bottom - top < 2) return;
         _viewModel.SetRoi(new RectangleRoi { X = left, Y = top, Width = right - left, Height = bottom - top });
+    }
+
+    private void ViewModel_OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(MainViewModel.SelectedObject)) return;
+        UpdateSelectionRectangle();
+        if (_viewModel.SelectedObject is not null)
+        {
+            ObjectDataGrid.ScrollIntoView(_viewModel.SelectedObject);
+            ObjectDataGrid.Focus();
+        }
+    }
+
+    private void UpdateSelectionRectangle()
+    {
+        var item = _viewModel.SelectedObject;
+        var displayed = GetDisplayedImageRect();
+        if (item is null || displayed.IsEmpty || _viewModel.ImagePixelWidth <= 0)
+        {
+            SelectionRectangle.Visibility = Visibility.Collapsed;
+            return;
+        }
+        var scaleX = displayed.Width / _viewModel.ImagePixelWidth;
+        var scaleY = displayed.Height / _viewModel.ImagePixelHeight;
+        Canvas.SetLeft(SelectionRectangle, displayed.Left + item.BoundingBoxX * scaleX);
+        Canvas.SetTop(SelectionRectangle, displayed.Top + item.BoundingBoxY * scaleY);
+        SelectionRectangle.Width = Math.Max(4, item.BoundingBoxWidth * scaleX);
+        SelectionRectangle.Height = Math.Max(4, item.BoundingBoxHeight * scaleY);
+        SelectionRectangle.Visibility = Visibility.Visible;
     }
 
     private void UpdateRoiRectangle(Point first, Point second)
@@ -92,6 +132,7 @@ public partial class MainWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
+        _viewModel.PropertyChanged -= ViewModel_OnPropertyChanged;
         _viewModel.Dispose();
         base.OnClosed(e);
     }
