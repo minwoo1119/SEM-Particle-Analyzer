@@ -89,8 +89,8 @@
         <Canvas x:Name="RoiCanvas">
          <Rectangle x:Name="RoiRectangle" Stroke="#FFD54F" StrokeThickness="2.5"
           StrokeDashArray="6,3" Fill="#16FFD54F" Visibility="Collapsed"/>
-         <Rectangle x:Name="SelectionRectangle" Stroke="#00E5FF" StrokeThickness="3"
-          Fill="#2800E5FF" Visibility="Collapsed"/>
+         <Polygon x:Name="SelectionContour" Stroke="#00E5FF" StrokeThickness="1.5"
+          StrokeLineJoin="Round" Fill="#2200E5FF" Visibility="Collapsed"/>
          <Rectangle x:Name="ZoomAreaRectangle" Stroke="#FFFFFF" StrokeThickness="2"
           StrokeDashArray="4,2" Fill="#30FFD54F" Visibility="Collapsed"/>
         </Canvas>

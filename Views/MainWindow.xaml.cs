@@ -89,7 +89,7 @@ public partial class MainWindow : Window
         if (Math.Abs(start.X - end.X) < 4 && Math.Abs(start.Y - end.Y) < 4)
         {
             if (!_viewModel.SelectObjectAt(imageEnd.X, imageEnd.Y))
-                SelectionRectangle.Visibility = Visibility.Collapsed;
+                SelectionContour.Visibility = Visibility.Collapsed;
             RoiRectangle.Visibility = Visibility.Collapsed;
             return;
         }
@@ -107,7 +107,7 @@ public partial class MainWindow : Window
         {
             ResetView();
             RoiRectangle.Visibility = Visibility.Collapsed;
-            SelectionRectangle.Visibility = Visibility.Collapsed;
+            SelectionContour.Visibility = Visibility.Collapsed;
             ZoomAreaRectangle.Visibility = Visibility.Collapsed;
             return;
         }
@@ -126,16 +126,27 @@ public partial class MainWindow : Window
         var displayed = GetDisplayedImageRect();
         if (item is null || displayed.IsEmpty || _viewModel.ImagePixelWidth <= 0)
         {
-            SelectionRectangle.Visibility = Visibility.Collapsed;
+            SelectionContour.Visibility = Visibility.Collapsed;
             return;
         }
         var scaleX = displayed.Width / _viewModel.ImagePixelWidth;
         var scaleY = displayed.Height / _viewModel.ImagePixelHeight;
-        Canvas.SetLeft(SelectionRectangle, displayed.Left + item.BoundingBoxX * scaleX);
-        Canvas.SetTop(SelectionRectangle, displayed.Top + item.BoundingBoxY * scaleY);
-        SelectionRectangle.Width = Math.Max(4, item.BoundingBoxWidth * scaleX);
-        SelectionRectangle.Height = Math.Max(4, item.BoundingBoxHeight * scaleY);
-        SelectionRectangle.Visibility = Visibility.Visible;
+        if (item.ContourPoints.Count >= 3)
+        {
+            SelectionContour.Points = new PointCollection(item.ContourPoints.Select(p =>
+                new Point(displayed.Left + p.X * scaleX, displayed.Top + p.Y * scaleY)));
+        }
+        else
+        {
+            SelectionContour.Points = new PointCollection
+            {
+                new(displayed.Left + item.BoundingBoxX * scaleX, displayed.Top + item.BoundingBoxY * scaleY),
+                new(displayed.Left + (item.BoundingBoxX + item.BoundingBoxWidth) * scaleX, displayed.Top + item.BoundingBoxY * scaleY),
+                new(displayed.Left + (item.BoundingBoxX + item.BoundingBoxWidth) * scaleX, displayed.Top + (item.BoundingBoxY + item.BoundingBoxHeight) * scaleY),
+                new(displayed.Left + item.BoundingBoxX * scaleX, displayed.Top + (item.BoundingBoxY + item.BoundingBoxHeight) * scaleY)
+            };
+        }
+        SelectionContour.Visibility = Visibility.Visible;
     }
 
     private static void UpdateDragRectangle(System.Windows.Shapes.Rectangle rectangle, Point first, Point second)
@@ -241,6 +252,7 @@ public partial class MainWindow : Window
         ViewerScaleTransform.ScaleY = newZoom;
         ViewerTranslateTransform.X = hostAnchor.X - contentAnchor.X * newZoom;
         ViewerTranslateTransform.Y = hostAnchor.Y - contentAnchor.Y * newZoom;
+        UpdateOverlayStrokeWidths();
     }
 
     private void ZoomToArea(Point firstHost, Point secondHost)
@@ -256,6 +268,7 @@ public partial class MainWindow : Window
         ViewerScaleTransform.ScaleY = newZoom;
         ViewerTranslateTransform.X = ImageHost.ActualWidth / 2 - contentCenter.X * newZoom;
         ViewerTranslateTransform.Y = ImageHost.ActualHeight / 2 - contentCenter.Y * newZoom;
+        UpdateOverlayStrokeWidths();
     }
 
     private void ResetView()
@@ -264,6 +277,15 @@ public partial class MainWindow : Window
         ViewerScaleTransform.ScaleY = 1;
         ViewerTranslateTransform.X = 0;
         ViewerTranslateTransform.Y = 0;
+        UpdateOverlayStrokeWidths();
+    }
+
+    private void UpdateOverlayStrokeWidths()
+    {
+        var inverseZoom = 1 / ViewerScaleTransform.ScaleX;
+        RoiRectangle.StrokeThickness = 2 * inverseZoom;
+        SelectionContour.StrokeThickness = 1.5 * inverseZoom;
+        ZoomAreaRectangle.StrokeThickness = 1.5 * inverseZoom;
     }
 
     protected override void OnClosed(EventArgs e)

@@ -117,8 +117,11 @@ public sealed class ParticleMeasurement
     public double MaxGv { get; set; }
     public double StdDevGv { get; set; }
     public bool TouchesBorder { get; set; }
+    public List<ImagePoint> ContourPoints { get; set; } = [];
     public string RejectionSummary => string.Join(", ", RejectedBy);
 }
+
+public readonly record struct ImagePoint(int X, int Y);
 
 public sealed class AnalysisSummary
 {

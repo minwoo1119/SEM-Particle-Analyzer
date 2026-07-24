@@ -102,7 +102,7 @@ public sealed class AnalysisService : IAnalysisService
     private static List<ParticleMeasurement> MeasureObjects(Mat gray, Mat mask, Rect roi,
         AnalysisSettings settings, CancellationToken token)
     {
-        Cv2.FindContours(mask, out var contours, out _, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
+        Cv2.FindContours(mask, out var contours, out _, RetrievalModes.External, ContourApproximationModes.ApproxNone);
         var result = new List<ParticleMeasurement>();
         var ordered = contours.OrderBy(c => Cv2.BoundingRect(c).Y).ThenBy(c => Cv2.BoundingRect(c).X);
         foreach (var contour in ordered)
@@ -141,7 +141,8 @@ public sealed class AnalysisService : IAnalysisService
                     ? equivalent * settings.Calibration.MicrometersPerPixel.Value : null,
                 Circularity = circularity, Solidity = solidity,
                 MeanGv = mean.Val0, MinGv = min, MaxGv = max, StdDevGv = std.Val0,
-                TouchesBorder = touches
+                TouchesBorder = touches,
+                ContourPoints = contour.Select(p => new ImagePoint(p.X, p.Y)).ToList()
             };
             Evaluate(item, settings);
             result.Add(item);
@@ -173,16 +174,15 @@ public sealed class AnalysisService : IAnalysisService
         }
         // 분석 ROI: 밝은 노랑. 밝거나 어두운 SEM 영상 모두에서 식별하기 쉽도록 2 px로 표시한다.
         Cv2.Rectangle(overlay, roi, new Scalar(40, 220, 255), 2, LineTypes.AntiAlias);
-        Cv2.FindContours(mask, out var contours, out _, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
-        foreach (var contour in contours)
+        foreach (var item in objects)
         {
-            var b = Cv2.BoundingRect(contour);
-            var item = objects.FirstOrDefault(o => o.BoundingBoxX == b.X && o.BoundingBoxY == b.Y);
-            if (item is null) continue;
+            var contour = item.ContourPoints.Select(p => new Point(p.X, p.Y)).ToArray();
+            if (contour.Length < 2) continue;
+            var b = new Rect(item.BoundingBoxX, item.BoundingBoxY, item.BoundingBoxWidth, item.BoundingBoxHeight);
             // Accepted는 밝은 초록, Rejected는 주황-빨강으로 고정한다.
             var color = item.FinalAccepted ? new Scalar(70, 230, 105) : new Scalar(50, 95, 255);
-            Cv2.DrawContours(overlay, [contour], -1, new Scalar(20, 20, 20), 4, LineTypes.AntiAlias);
-            Cv2.DrawContours(overlay, [contour], -1, color, 2, LineTypes.AntiAlias);
+            Cv2.DrawContours(overlay, [contour], -1, new Scalar(15, 15, 15), 2, LineTypes.AntiAlias);
+            Cv2.DrawContours(overlay, [contour], -1, color, 1, LineTypes.AntiAlias);
             var labelPoint = new Point(b.X, Math.Max(12, b.Y - 4));
             Cv2.PutText(overlay, item.ObjectId.ToString(), labelPoint,
                 HersheyFonts.HersheySimplex, .42, new Scalar(15, 15, 15), 3, LineTypes.AntiAlias);

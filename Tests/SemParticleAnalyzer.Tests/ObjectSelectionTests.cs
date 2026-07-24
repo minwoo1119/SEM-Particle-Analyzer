@@ -41,4 +41,24 @@ public sealed class ObjectSelectionTests
         Assert.False(viewModel.SelectObjectAt(80, 80));
         Assert.Null(viewModel.SelectedObject);
     }
+
+    [Fact]
+    public void SelectObjectAt_DoesNotSelectEmptyPartOfBoundingBox()
+    {
+        using var viewModel = new MainViewModel();
+        viewModel.Objects.Add(new ParticleMeasurement
+        {
+            ObjectId = 1,
+            BoundingBoxX = 10, BoundingBoxY = 10, BoundingBoxWidth = 20, BoundingBoxHeight = 20,
+            ContourPoints =
+            [
+                new ImagePoint(10, 10),
+                new ImagePoint(30, 10),
+                new ImagePoint(10, 30)
+            ]
+        });
+
+        Assert.False(viewModel.SelectObjectAt(27, 27));
+        Assert.True(viewModel.SelectObjectAt(15, 15));
+    }
 }

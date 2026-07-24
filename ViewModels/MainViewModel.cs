@@ -112,8 +112,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     {
         if (Objects.Count == 0) return false;
         var selected = Objects
-            .Where(x => imageX >= x.BoundingBoxX && imageX <= x.BoundingBoxX + x.BoundingBoxWidth
-                     && imageY >= x.BoundingBoxY && imageY <= x.BoundingBoxY + x.BoundingBoxHeight)
+            .Where(x => ContainsPoint(x, imageX, imageY))
             .OrderBy(x => x.BoundingBoxWidth * x.BoundingBoxHeight)
             .FirstOrDefault();
         if (selected is null) return false;
@@ -121,6 +120,25 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         StatusText = $"객체 {selected.ObjectId}: Area {selected.AreaPixel2:F2} px², Mean GV {selected.MeanGv:F1}, " +
                      (selected.FinalAccepted ? "Accepted" : $"Rejected ({selected.RejectionSummary})");
         return true;
+    }
+
+    private static bool ContainsPoint(ParticleMeasurement particle, double x, double y)
+    {
+        if (x < particle.BoundingBoxX || x > particle.BoundingBoxX + particle.BoundingBoxWidth ||
+            y < particle.BoundingBoxY || y > particle.BoundingBoxY + particle.BoundingBoxHeight)
+            return false;
+        if (particle.ContourPoints.Count < 3) return true;
+
+        var inside = false;
+        for (int i = 0, j = particle.ContourPoints.Count - 1; i < particle.ContourPoints.Count; j = i++)
+        {
+            var a = particle.ContourPoints[i];
+            var b = particle.ContourPoints[j];
+            if ((a.Y > y) != (b.Y > y) &&
+                x < (double)(b.X - a.X) * (y - a.Y) / (b.Y - a.Y) + a.X)
+                inside = !inside;
+        }
+        return inside;
     }
 
     private async Task OpenImageAsync()
