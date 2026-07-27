@@ -1,4 +1,5 @@
 using SemParticleAnalyzer.Services;
+using OpenCvSharp;
 
 namespace SemParticleAnalyzer.Tests;
 
@@ -26,5 +27,26 @@ public sealed class GeometryMeasurementsTests
     public void InvalidShapeInputs_ReturnNull(double area, double perimeter)
     {
         Assert.Null(GeometryMeasurements.Circularity(area, perimeter));
+    }
+
+    [Fact]
+    public void MaximumFeret_ReturnsLongestHullDiagonal()
+    {
+        Point[] hull = [new(0, 0), new(40, 0), new(40, 10), new(0, 10)];
+
+        var value = GeometryMeasurements.MaximumFeret(hull);
+
+        Assert.Equal(Math.Sqrt(1700), value!.Value, 8);
+    }
+
+    [Fact]
+    public void Axes_ReturnsMinimumFeretForRectangle()
+    {
+        Point[] contour = [new(0, 0), new(40, 0), new(40, 10), new(0, 10)];
+
+        var axes = GeometryMeasurements.Axes(contour);
+
+        Assert.Equal(10, axes.Minimum!.Value, 6);
+        Assert.Equal(4, axes.AspectRatio!.Value, 6);
     }
 }

@@ -23,6 +23,8 @@ public sealed class AnalysisService : IAnalysisService
             ApplyThreshold(grayRoi, binaryRoi, settings);
 
         token.ThrowIfCancellationRequested();
+        if (settings.Watershed.Enabled)
+            ApplyWatershed(preprocessed, binaryFull, settings.Watershed);
         var objects = MeasureObjects(gray, binaryFull, roi, settings, token);
         var overlay = RenderOverlay(source, roi, binaryFull, objects);
         watch.Stop();
@@ -38,7 +40,10 @@ public sealed class AnalysisService : IAnalysisService
                 AcceptedCount = objects.Count(x => x.FinalAccepted),
                 RoiAreaPixel2 = roi.Width * roi.Height,
                 AcceptedAreaPixel2 = objects.Where(x => x.FinalAccepted).Sum(x => x.AreaPixel2),
-                ProcessingTime = watch.Elapsed
+                ProcessingTime = watch.Elapsed,
+                D10Pixel = ParticleStatistics.Percentile(objects.Where(x => x.FinalAccepted).Select(x => x.EquivalentDiameterPixel), .10),
+                D50Pixel = ParticleStatistics.Percentile(objects.Where(x => x.FinalAccepted).Select(x => x.EquivalentDiameterPixel), .50),
+                D90Pixel = ParticleStatistics.Percentile(objects.Where(x => x.FinalAccepted).Select(x => x.EquivalentDiameterPixel), .90)
             }
         };
     }
@@ -99,6 +104,47 @@ public sealed class AnalysisService : IAnalysisService
         }
     }
 
+    private static void ApplyWatershed(Mat gray, Mat binaryMask, WatershedSettings settings)
+    {
+        using var distance = new Mat();
+        Cv2.DistanceTransform(binaryMask, distance, DistanceTypes.L2, DistanceTransformMasks.Mask5);
+        Cv2.MinMaxLoc(distance, out double _, out double maximum);
+        if (maximum <= 0) return;
+
+        using var candidateFloat = new Mat();
+        Cv2.Threshold(distance, candidateFloat, maximum * Math.Clamp(settings.SeedThresholdRatio, .05, .95),
+            255, ThresholdTypes.Binary);
+        using var candidates = new Mat();
+        candidateFloat.ConvertTo(candidates, MatType.CV_8U);
+        var peakDistance = Math.Clamp(settings.MinimumPeakDistance, 1, 100);
+        using var peakKernel = Cv2.GetStructuringElement(MorphShapes.Rect,
+            new Size(peakDistance * 2 + 1, peakDistance * 2 + 1));
+        using var neighborhoodMaximum = new Mat();
+        Cv2.Dilate(distance, neighborhoodMaximum, peakKernel);
+        using var localMaximumMask = new Mat();
+        Cv2.Compare(distance, neighborhoodMaximum, localMaximumMask, CmpType.EQ);
+        using var peakPoints = new Mat();
+        Cv2.BitwiseAnd(candidates, localMaximumMask, peakPoints);
+        using var seeds = new Mat();
+        using (var seedKernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new Size(3, 3)))
+            Cv2.Dilate(peakPoints, seeds, seedKernel);
+        using var sureBackground = new Mat();
+        using var kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new Size(3, 3));
+        Cv2.Dilate(binaryMask, sureBackground, kernel, iterations: Math.Clamp(settings.BackgroundDilationIterations, 1, 10));
+        using var unknown = new Mat();
+        Cv2.Subtract(sureBackground, seeds, unknown);
+        using var markers = new Mat();
+        Cv2.ConnectedComponents(seeds, markers, PixelConnectivity.Connectivity8, MatType.CV_32S);
+        Cv2.Add(markers, Scalar.All(1), markers);
+        markers.SetTo(0, unknown);
+        using var color = new Mat();
+        Cv2.CvtColor(gray, color, ColorConversionCodes.GRAY2BGR);
+        Cv2.Watershed(color, markers);
+        using var separated = new Mat();
+        Cv2.Compare(markers, Scalar.All(1), separated, CmpType.GT);
+        separated.CopyTo(binaryMask);
+    }
+
     private static List<ParticleMeasurement> MeasureObjects(Mat gray, Mat mask, Rect roi,
         AnalysisSettings settings, CancellationToken token)
     {
@@ -119,6 +165,8 @@ public sealed class AnalysisService : IAnalysisService
             var hull = Cv2.ConvexHull(contour);
             var hullArea = hull.Length >= 3 ? Cv2.ContourArea(hull) : 0;
             double? solidity = reliable ? GeometryMeasurements.Solidity(area, hullArea) : null;
+            var maxFeret = reliable ? GeometryMeasurements.MaximumFeret(hull) : null;
+            var axes = reliable ? GeometryMeasurements.Axes(contour) : default;
             var touches = bounds.X <= roi.X || bounds.Y <= roi.Y || bounds.Right >= roi.Right || bounds.Bottom >= roi.Bottom;
 
             using var objectMask = Mat.Zeros(mask.Size(), MatType.CV_8UC1).ToMat();
@@ -139,6 +187,16 @@ public sealed class AnalysisService : IAnalysisService
                 EquivalentDiameterPixel = equivalent,
                 EquivalentDiameterUm = settings.Calibration.Enabled && settings.Calibration.MicrometersPerPixel is > 0
                     ? equivalent * settings.Calibration.MicrometersPerPixel.Value : null,
+                MaxFeretPixel = maxFeret,
+                MinFeretPixel = axes.Minimum,
+                MajorAxisPixel = axes.Major,
+                MinorAxisPixel = axes.Minor,
+                AspectRatio = axes.AspectRatio,
+                OrientationDegrees = axes.Orientation,
+                MaxFeretUm = Scale(maxFeret, settings.Calibration),
+                MinFeretUm = Scale(axes.Minimum, settings.Calibration),
+                MajorAxisUm = Scale(axes.Major, settings.Calibration),
+                MinorAxisUm = Scale(axes.Minor, settings.Calibration),
                 Circularity = circularity, Solidity = solidity,
                 MeanGv = mean.Val0, MinGv = min, MaxGv = max, StdDevGv = std.Val0,
                 TouchesBorder = touches,
@@ -154,6 +212,7 @@ public sealed class AnalysisService : IAnalysisService
     {
         if (!settings.AreaFilter.Accepts(item.AreaPixel2)) item.RejectedBy.Add("Area");
         if (!settings.EquivalentDiameterFilter.Accepts(item.EquivalentDiameterPixel)) item.RejectedBy.Add("EquivalentDiameter");
+        if (!settings.MaxFeretFilter.Accepts(item.MaxFeretPixel)) item.RejectedBy.Add("MaxFeret");
         if (!settings.CircularityFilter.Accepts(item.Circularity)) item.RejectedBy.Add("Circularity");
         if (!settings.SolidityFilter.Accepts(item.Solidity)) item.RejectedBy.Add("Solidity");
         if (item.TouchesBorder && settings.BorderRule == BorderObjectRule.Exclude) item.RejectedBy.Add("BorderContact");
@@ -188,4 +247,8 @@ public sealed class AnalysisService : IAnalysisService
     }
 
     private static int Odd(int value) => Math.Max(1, value % 2 == 0 ? value + 1 : value);
+
+    private static double? Scale(double? pixels, ScaleCalibration calibration) =>
+        calibration.Enabled && calibration.MicrometersPerPixel is > 0 && pixels.HasValue
+            ? pixels.Value * calibration.MicrometersPerPixel.Value : null;
 }

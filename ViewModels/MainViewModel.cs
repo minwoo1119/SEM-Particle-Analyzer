@@ -48,6 +48,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
     public AnalysisSettings Settings { get; private set; } = new();
     public ObservableCollection<ParticleMeasurement> Objects { get; } = [];
+    public ObservableCollection<HistogramBin> DiameterHistogram { get; } = [];
     public Array ThresholdModes => Enum.GetValues<ThresholdMode>();
     public Array BorderRules => Enum.GetValues<BorderObjectRule>();
     public Array ViewerModes => Enum.GetValues<ViewerMode>();
@@ -99,7 +100,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public string ImageDescription => _sourceInfo is null ? "이미지 없음" :
         $"{_sourceInfo.Width:N0} × {_sourceInfo.Height:N0} px  ·  {_sourceInfo.Depth}  ·  {_sourceInfo.Channels} channel";
     public string SummaryText => Summary is null ? "분석 결과 없음" :
-        $"분할 {Summary.SegmentedCount:N0}  |  통과 {Summary.AcceptedCount:N0}  |  제외 {Summary.RejectedCount:N0}  |  면적률 {Summary.AreaFraction:P2}  |  {Summary.ProcessingTime.TotalMilliseconds:N0} ms";
+        $"분할 {Summary.SegmentedCount:N0}  |  통과 {Summary.AcceptedCount:N0}  |  제외 {Summary.RejectedCount:N0}  |  " +
+        $"D50 {Summary.D50Pixel?.ToString("F2") ?? "-"} px  |  면적률 {Summary.AreaFraction:P2}  |  {Summary.ProcessingTime.TotalMilliseconds:N0} ms";
 
     public void SetRoi(RectangleRoi roi)
     {
@@ -168,6 +170,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             Settings.Roi = new RectangleRoi { X = 0, Y = 0, Width = _source.Width, Height = _source.Height };
             SelectedObject = null;
             Objects.Clear();
+            DiameterHistogram.Clear();
             ViewerMode = ViewerMode.Original;
             RefreshDisplay();
             NotifyState();
@@ -186,6 +189,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             SelectedObject = null;
             Objects.Clear();
             foreach (var item in _result.Objects) Objects.Add(item);
+            RefreshDistribution();
             ViewerMode = ViewerMode.Overlay;
             RefreshDisplay();
             NotifyState();
@@ -208,6 +212,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             SelectedObject = null;
             Objects.Clear();
             foreach (var item in _result.Objects) Objects.Add(item);
+            RefreshDistribution();
             RefreshDisplay();
             NotifyState();
             StatusText = $"원본 해상도 분석 결과를 저장했습니다: {path}";
@@ -310,6 +315,14 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(ImageDescription));
         OnPropertyChanged(nameof(SummaryText));
         RefreshCommands();
+    }
+
+    private void RefreshDistribution()
+    {
+        DiameterHistogram.Clear();
+        foreach (var bin in ParticleStatistics.Histogram(
+                     Objects.Where(x => x.FinalAccepted).Select(x => x.EquivalentDiameterPixel)))
+            DiameterHistogram.Add(bin);
     }
 
     private void RefreshCommands()

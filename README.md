@@ -16,6 +16,9 @@ SEM 및 현미경 이미지에서 Gray Value와 형상 조건을 이용해 미�
 - Gaussian blur, CLAHE, 반전, morphology open
 - InRange, Binary, Otsu threshold
 - Contour 기반 면적, 둘레, 등가원 직경, circularity, solidity, GV 측정
+- Distance Transform local maxima와 Watershed 기반 접촉 입자 분리
+- Max/Min Feret, 장축/단축, aspect ratio, orientation 측정
+- Accepted 객체 기준 등가원 직경 히스토그램과 D10/D50/D90
 - 필터별 제외 사유와 ROI 경계 접촉 판정
 - Original, Preprocessed, Binary mask, Overlay 보기
 - CSV, JSON, 분석 이미지, 로컬 HTML 보고서 내보내기

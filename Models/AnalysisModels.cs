@@ -58,12 +58,21 @@ public sealed class PreprocessingSettings
     public int MorphologyKernelSize { get; set; } = 3;
 }
 
+public sealed class WatershedSettings
+{
+    public bool Enabled { get; set; }
+    public double SeedThresholdRatio { get; set; } = 0.42;
+    public int MinimumPeakDistance { get; set; } = 8;
+    public int BackgroundDilationIterations { get; set; } = 2;
+}
+
 public sealed class AnalysisSettings
 {
     public int SchemaVersion { get; set; } = 1;
     public RectangleRoi Roi { get; set; } = new();
     public ScaleCalibration Calibration { get; set; } = new();
     public PreprocessingSettings Preprocessing { get; set; } = new();
+    public WatershedSettings Watershed { get; set; } = new();
     public ThresholdMode ThresholdMode { get; set; } = ThresholdMode.InRange;
     public int MinimumGv { get; set; } = 135;
     public int MaximumGv { get; set; } = 255;
@@ -71,6 +80,7 @@ public sealed class AnalysisSettings
     public int MinimumShapeMeasurementArea { get; set; } = 9;
     public RangeFilter AreaFilter { get; set; } = new() { Enabled = true, Minimum = 5, Unit = "px²" };
     public RangeFilter EquivalentDiameterFilter { get; set; } = new() { Unit = "px" };
+    public RangeFilter MaxFeretFilter { get; set; } = new() { Unit = "px" };
     public RangeFilter CircularityFilter { get; set; } = new() { Unit = "ratio" };
     public RangeFilter SolidityFilter { get; set; } = new() { Unit = "ratio" };
 }
@@ -110,6 +120,16 @@ public sealed class ParticleMeasurement
     public double PerimeterPixel { get; set; }
     public double? EquivalentDiameterPixel { get; set; }
     public double? EquivalentDiameterUm { get; set; }
+    public double? MaxFeretPixel { get; set; }
+    public double? MinFeretPixel { get; set; }
+    public double? MaxFeretUm { get; set; }
+    public double? MinFeretUm { get; set; }
+    public double? MajorAxisPixel { get; set; }
+    public double? MinorAxisPixel { get; set; }
+    public double? MajorAxisUm { get; set; }
+    public double? MinorAxisUm { get; set; }
+    public double? AspectRatio { get; set; }
+    public double? OrientationDegrees { get; set; }
     public double? Circularity { get; set; }
     public double? Solidity { get; set; }
     public double MeanGv { get; set; }
@@ -132,4 +152,16 @@ public sealed class AnalysisSummary
     public double AcceptedAreaPixel2 { get; set; }
     public double AreaFraction => RoiAreaPixel2 <= 0 ? 0 : AcceptedAreaPixel2 / RoiAreaPixel2;
     public TimeSpan ProcessingTime { get; set; }
+    public double? D10Pixel { get; set; }
+    public double? D50Pixel { get; set; }
+    public double? D90Pixel { get; set; }
+}
+
+public sealed class HistogramBin
+{
+    public double Minimum { get; set; }
+    public double Maximum { get; set; }
+    public int Count { get; set; }
+    public double Fraction { get; set; }
+    public string RangeLabel => $"{Minimum:F2}–{Maximum:F2}";
 }

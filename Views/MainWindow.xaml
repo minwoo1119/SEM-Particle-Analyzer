@@ -1,6 +1,7 @@
 <Window x:Class="SemParticleAnalyzer.Views.MainWindow"
  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:controls="clr-namespace:SemParticleAnalyzer.Controls"
  Title="SEM Particle Analyzer" Width="1500" Height="920" MinWidth="1120" MinHeight="700"
  WindowStartupLocation="CenterScreen">
  <Grid>
@@ -207,9 +208,28 @@
          <CheckBox Content="Morphology open" IsChecked="{Binding Settings.Preprocessing.MorphologyOpenEnabled}" Margin="0,2,0,0"
           ToolTip="침식 후 팽창으로 작은 밝은 노이즈와 가는 돌기를 제거합니다."/>
         </StackPanel>
-       </GroupBox>
+        </GroupBox>
 
-       <GroupBox Header="객체 필터"
+        <GroupBox Header="접촉 입자 분리"
+         ToolTip="붙어 있는 입자를 Distance Transform 기반 Watershed로 분리합니다. 과분할될 수 있으므로 Binary mask와 결과를 함께 확인하세요.">
+         <StackPanel>
+          <CheckBox Content="Watershed 사용" IsChecked="{Binding Settings.Watershed.Enabled}" Margin="0,0,0,7"/>
+          <Grid>
+           <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="85"/></Grid.ColumnDefinitions>
+           <TextBlock Text="Seed threshold ratio" Foreground="{StaticResource Muted}" VerticalAlignment="Center"/>
+           <TextBox Grid.Column="1" Text="{Binding Settings.Watershed.SeedThresholdRatio}"
+            ToolTip="Distance Transform 최대값 대비 seed 임계 비율입니다. 낮추면 분리 seed가 커지고 높이면 보수적으로 분리합니다."/>
+          </Grid>
+          <Grid Margin="0,6,0,0">
+           <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="85"/></Grid.ColumnDefinitions>
+           <TextBlock Text="Minimum peak distance" Foreground="{StaticResource Muted}" VerticalAlignment="Center"/>
+           <TextBox Grid.Column="1" Text="{Binding Settings.Watershed.MinimumPeakDistance}"
+            ToolTip="서로 다른 입자 중심 peak 사이의 최소 거리(px)입니다. 너무 작으면 과분할될 수 있습니다."/>
+          </Grid>
+         </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="객체 필터"
         ToolTip="Threshold로 분할된 각 객체의 측정값을 검사합니다. 활성화한 모든 필터를 통과해야 Accepted가 됩니다.">
         <StackPanel>
          <CheckBox Content="Area 활성화" IsChecked="{Binding Settings.AreaFilter.Enabled}" Margin="0,0,0,5"
@@ -217,7 +237,13 @@
          <Grid Margin="20,0,0,9"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
           <StackPanel Margin="0,0,5,0"><TextBlock Text="Min px²" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.AreaFilter.Minimum}" ToolTip="이 면적보다 작은 객체를 제외합니다. 빈 값은 하한 없음입니다."/></StackPanel>
           <StackPanel Grid.Column="1" Margin="5,0,0,0"><TextBlock Text="Max px²" Foreground="{StaticResource Muted}"/><TextBox Text="{Binding Settings.AreaFilter.Maximum}" ToolTip="이 면적보다 큰 객체를 제외합니다. 빈 값은 상한 없음입니다."/></StackPanel>
-         </Grid>
+          </Grid>
+          <CheckBox Content="Max Feret 활성화" IsChecked="{Binding Settings.MaxFeretFilter.Enabled}" Margin="0,0,0,5"
+           ToolTip="객체 윤곽의 두 점 사이 최대 거리로 크기를 필터링합니다."/>
+          <Grid Margin="20,0,0,9"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+           <TextBox Text="{Binding Settings.MaxFeretFilter.Minimum}" Margin="0,0,5,0" ToolTip="최소 Max Feret (px)"/>
+           <TextBox Grid.Column="1" Text="{Binding Settings.MaxFeretFilter.Maximum}" Margin="5,0,0,0" ToolTip="최대 Max Feret (px)"/>
+          </Grid>
          <CheckBox Content="Circularity 활성화" IsChecked="{Binding Settings.CircularityFilter.Enabled}" Margin="0,0,0,5"
           ToolTip="Circularity = 4π × Area / Perimeter². 원에 가까울수록 1에 가깝습니다. 매우 작은 객체는 값이 불안정하여 계산하지 않을 수 있습니다."/>
          <Grid Margin="20,0,0,9"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
@@ -278,7 +304,7 @@
 
    <Border Grid.Column="0" Grid.Row="1" Margin="12,6,6,12" Background="White" BorderBrush="{StaticResource Line}" BorderThickness="1">
     <Grid>
-     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition/></Grid.RowDefinitions>
+      <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
      <Border Padding="12,9" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1">
       <DockPanel>
        <Button DockPanel.Dock="Right" Content="선택 객체 포함/제외" Command="{Binding ToggleObjectCommand}" Padding="10,4"
@@ -328,7 +354,9 @@
        </Grid>
       </Grid>
      </Border>
-     <DataGrid x:Name="ObjectDataGrid" Grid.Row="2" ItemsSource="{Binding Objects}" SelectedItem="{Binding SelectedObject}"
+      <TabControl Grid.Row="2" BorderThickness="0">
+       <TabItem Header="측정 데이터">
+      <DataGrid x:Name="ObjectDataGrid" ItemsSource="{Binding Objects}" SelectedItem="{Binding SelectedObject}"
       AutoGenerateColumns="False" IsReadOnly="True" EnableRowVirtualization="True" EnableColumnVirtualization="True"
       HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0" RowHeaderWidth="0">
       <DataGrid.Columns>
@@ -343,9 +371,15 @@
        <DataGridTextColumn Header="Area (µm²)" Binding="{Binding AreaUm2, StringFormat=F3, TargetNullValue=-}" Width="90">
         <DataGridTextColumn.HeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="ToolTip" Value="Scale calibration이 적용된 실제 객체 면적"/></Style></DataGridTextColumn.HeaderStyle>
        </DataGridTextColumn>
-       <DataGridTextColumn Header="Eq. diameter (µm)" Binding="{Binding EquivalentDiameterUm, StringFormat=F3, TargetNullValue=-}" Width="110">
+        <DataGridTextColumn Header="Eq. diameter (µm)" Binding="{Binding EquivalentDiameterUm, StringFormat=F3, TargetNullValue=-}" Width="110">
         <DataGridTextColumn.HeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="ToolTip" Value="Scale calibration이 적용된 실제 등가원 직경"/></Style></DataGridTextColumn.HeaderStyle>
-       </DataGridTextColumn>
+        </DataGridTextColumn>
+        <DataGridTextColumn Header="Max Feret (px)" Binding="{Binding MaxFeretPixel, StringFormat=F2, TargetNullValue=-}" Width="105"/>
+        <DataGridTextColumn Header="Min Feret (px)" Binding="{Binding MinFeretPixel, StringFormat=F2, TargetNullValue=-}" Width="105"/>
+        <DataGridTextColumn Header="Major axis (px)" Binding="{Binding MajorAxisPixel, StringFormat=F2, TargetNullValue=-}" Width="105"/>
+        <DataGridTextColumn Header="Minor axis (px)" Binding="{Binding MinorAxisPixel, StringFormat=F2, TargetNullValue=-}" Width="105"/>
+        <DataGridTextColumn Header="Aspect ratio" Binding="{Binding AspectRatio, StringFormat=F3, TargetNullValue=-}" Width="90"/>
+        <DataGridTextColumn Header="Orientation (°)" Binding="{Binding OrientationDegrees, StringFormat=F1, TargetNullValue=-}" Width="100"/>
        <DataGridTextColumn Header="Perimeter (px)" Binding="{Binding PerimeterPixel, StringFormat=F2}" Width="100">
         <DataGridTextColumn.HeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="ToolTip" Value="객체 contour를 따라 측정한 둘레(pixel)"/></Style></DataGridTextColumn.HeaderStyle>
        </DataGridTextColumn>
@@ -365,7 +399,21 @@
         <DataGridTextColumn.HeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="ToolTip" Value="자동 판정에서 객체를 제외한 조건 목록"/></Style></DataGridTextColumn.HeaderStyle>
        </DataGridTextColumn>
       </DataGrid.Columns>
-     </DataGrid>
+      </DataGrid>
+       </TabItem>
+       <TabItem Header="크기 분포">
+        <Grid Margin="14">
+         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+         <TextBlock Text="Accepted 객체 · Equivalent diameter (px)" FontWeight="SemiBold" Margin="0,0,0,8"/>
+         <controls:HistogramChart Grid.Row="1" ItemsSource="{Binding DiameterHistogram}" MinHeight="150"/>
+         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,0">
+          <TextBlock Text="D10 " Foreground="{StaticResource Muted}"/><TextBlock Text="{Binding Summary.D10Pixel, StringFormat=F2, TargetNullValue=-}" FontWeight="SemiBold" Margin="0,0,18,0"/>
+          <TextBlock Text="D50 " Foreground="{StaticResource Muted}"/><TextBlock Text="{Binding Summary.D50Pixel, StringFormat=F2, TargetNullValue=-}" FontWeight="SemiBold" Margin="0,0,18,0"/>
+          <TextBlock Text="D90 " Foreground="{StaticResource Muted}"/><TextBlock Text="{Binding Summary.D90Pixel, StringFormat=F2, TargetNullValue=-}" FontWeight="SemiBold"/>
+         </StackPanel>
+        </Grid>
+       </TabItem>
+      </TabControl>
     </Grid>
    </Border>
   </Grid>
