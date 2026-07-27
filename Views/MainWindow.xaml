@@ -10,19 +10,23 @@
    <RowDefinition Height="32"/>
   </Grid.RowDefinitions>
 
-  <Border Grid.Row="0" Background="White" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="14,10">
+  <Border Grid.Row="0" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="12,8">
    <DockPanel>
     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-     <Button Content="설정 불러오기" Command="{Binding LoadPresetCommand}"
-      ToolTip="저장해 둔 analysis_settings.json을 불러와 분석 조건을 복원합니다."/>
-     <Button Content="설정 저장" Command="{Binding SavePresetCommand}"
-      ToolTip="현재 ROI, 전처리, Threshold, 필터 및 보정 조건을 JSON으로 저장합니다."/>
-     <Button Content="결과 저장" Command="{Binding ExportCommand}" Background="{StaticResource Accent}" Foreground="White"
-      ToolTip="원본 해상도로 다시 분석한 뒤 이미지, CSV, JSON, HTML 보고서를 결과 폴더에 저장합니다."/>
+     <Button Command="{Binding LoadPresetCommand}" ToolTip="저장해 둔 analysis_settings.json을 불러와 분석 조건을 복원합니다.">
+      <StackPanel Orientation="Horizontal"><TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE8E5;" Margin="0,0,7,0"/><TextBlock Text="설정 불러오기"/></StackPanel>
+     </Button>
+     <Button Command="{Binding SavePresetCommand}" ToolTip="현재 ROI, 전처리, Threshold, 필터 및 보정 조건을 JSON으로 저장합니다.">
+      <StackPanel Orientation="Horizontal"><TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE74E;" Margin="0,0,7,0"/><TextBlock Text="설정 저장"/></StackPanel>
+     </Button>
+     <Button Command="{Binding ExportCommand}" ToolTip="원본 해상도로 다시 분석한 뒤 이미지, CSV, JSON, HTML 보고서를 결과 폴더에 저장합니다.">
+      <StackPanel Orientation="Horizontal"><TextBlock FontFamily="{StaticResource IconFont}" Text="&#xEDE1;" Margin="0,0,7,0"/><TextBlock Text="결과 저장"/></StackPanel>
+     </Button>
     </StackPanel>
     <StackPanel Orientation="Horizontal">
-     <Button Content="이미지 열기" Command="{Binding OpenImageCommand}"
-      ToolTip="PNG, JPEG, BMP, TIFF 이미지를 엽니다. 원본 파일은 수정하지 않습니다."/>
+     <Button Command="{Binding OpenImageCommand}" ToolTip="PNG, JPEG, BMP, TIFF 이미지를 엽니다. 원본 파일은 수정하지 않습니다.">
+      <StackPanel Orientation="Horizontal"><TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE8E5;" Margin="0,0,7,0"/><TextBlock Text="이미지 열기"/></StackPanel>
+     </Button>
     </StackPanel>
    </DockPanel>
   </Border>
@@ -43,30 +47,40 @@
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
      </Grid.RowDefinitions>
-     <Border Grid.Row="0" Background="#292C2F" Padding="10,7">
+     <Border Grid.Row="0" Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="8,6">
       <DockPanel>
-       <TextBlock DockPanel.Dock="Right" Text="{Binding ImageDescription}" Foreground="#B8BDC1" VerticalAlignment="Center"/>
-       <TextBlock Text="IMAGE VIEWER" Foreground="#E4E6E8" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"/>
+       <TextBlock DockPanel.Dock="Right" Text="{Binding ImageDescription}" Foreground="{StaticResource Muted}" VerticalAlignment="Center"/>
        <ComboBox ItemsSource="{Binding ViewerModes}" SelectedItem="{Binding ViewerMode}" Width="140"
         ToolTip="Original: 원본&#x0a;Preprocessed: 전처리 결과&#x0a;BinaryMask: 분할 마스크&#x0a;Overlay: 통과/제외 객체 윤곽과 ID"/>
-       <Separator Margin="8,0" Background="#51565A"/>
-       <ToggleButton x:Name="SelectRoiToolButton" Content="선택 / ROI" IsChecked="True"
+       <Separator Margin="8,0"/>
+       <ToggleButton x:Name="SelectRoiToolButton" IsChecked="True"
         Style="{StaticResource ViewerToolButton}" Click="SelectRoiToolButton_OnClick"
-        ToolTip="짧게 클릭하면 검출 객체를 선택하고, 드래그하면 분석 ROI를 지정합니다."/>
-       <ToggleButton x:Name="PanToolButton" Content="이동"
+        ToolTip="선택 / ROI: 짧게 클릭하면 검출 객체를 선택하고, 드래그하면 분석 ROI를 지정합니다.">
+        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE7C8;" FontSize="15"/>
+       </ToggleButton>
+       <ToggleButton x:Name="PanToolButton"
         Style="{StaticResource ViewerToolButton}" Click="PanToolButton_OnClick"
-        ToolTip="확대된 이미지를 드래그하여 이동합니다."/>
-       <ToggleButton x:Name="ZoomAreaToolButton" Content="영역 확대"
+        ToolTip="이동: 확대된 이미지를 드래그하여 이동합니다.">
+        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE7C2;" FontSize="15"/>
+       </ToggleButton>
+       <ToggleButton x:Name="ZoomAreaToolButton"
         Style="{StaticResource ViewerToolButton}" Click="ZoomAreaToolButton_OnClick"
-        ToolTip="확대할 사각 영역을 드래그합니다."/>
-       <Button Content="−" Click="ZoomOut_OnClick" Padding="10,3" Margin="7,0,3,0"
-        ToolTip="화면 중심을 기준으로 축소합니다. 마우스 휠 아래와 같습니다."/>
-       <Button Content="+" Click="ZoomIn_OnClick" Padding="10,3" Margin="0,0,3,0"
-        ToolTip="화면 중심을 기준으로 확대합니다. 마우스 휠 위와 같습니다."/>
-       <Button Content="맞춤" Click="Fit_OnClick" Padding="10,3" Margin="0,0,3,0"
-        ToolTip="전체 이미지가 Viewer 안에 보이도록 확대/이동을 초기화합니다."/>
-       <Button Content="100%" Click="ActualSize_OnClick" Padding="10,3" Margin="0"
-        ToolTip="이미지 1픽셀을 화면 1픽셀 크기로 표시합니다."/>
+        ToolTip="영역 확대: 확대할 사각 영역을 드래그합니다.">
+        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE1A3;" FontSize="15"/>
+       </ToggleButton>
+       <Separator Margin="5,0"/>
+       <Button Click="ZoomOut_OnClick" Style="{StaticResource ViewerIconButton}" ToolTip="축소">
+        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE71F;" FontSize="15"/>
+       </Button>
+       <Button Click="ZoomIn_OnClick" Style="{StaticResource ViewerIconButton}" ToolTip="확대">
+        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE8A3;" FontSize="15"/>
+       </Button>
+       <Button Click="Fit_OnClick" Style="{StaticResource ViewerIconButton}" ToolTip="화면 맞춤">
+        <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE9A6;" FontSize="15"/>
+       </Button>
+       <Button Click="ActualSize_OnClick" Style="{StaticResource ViewerIconButton}" ToolTip="실제 크기(1:1)">
+        <TextBlock Text="1:1" FontSize="10" FontWeight="SemiBold"/>
+       </Button>
       </DockPanel>
      </Border>
      <Border x:Name="ImageHost" Grid.Row="1" Background="#17191B"
@@ -250,11 +264,17 @@
         <ColumnDefinition Width="*"/>
         <ColumnDefinition Width="Auto"/>
        </Grid.ColumnDefinitions>
-       <Button Content="분석 실행" Command="{Binding AnalyzeCommand}" Margin="0"
-        Background="{StaticResource Accent}" Foreground="White" FontWeight="SemiBold"
-        ToolTip="현재 ROI와 모든 활성 조건을 적용하여 입자를 다시 검출하고 측정합니다."/>
-       <Button Grid.Column="1" Content="취소" Command="{Binding CancelCommand}" Margin="8,0,0,0"
-        ToolTip="현재 진행 중인 이미지 로드 또는 분석 작업을 안전하게 취소합니다."/>
+        <Button Command="{Binding AnalyzeCommand}" Margin="0"
+         ToolTip="현재 ROI와 모든 활성 조건을 적용하여 입자를 다시 검출하고 측정합니다.">
+         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+          <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE768;" Margin="0,0,7,0"/>
+          <TextBlock Text="분석 실행" FontWeight="SemiBold"/>
+         </StackPanel>
+        </Button>
+        <Button Grid.Column="1" Command="{Binding CancelCommand}" Margin="8,0,0,0"
+         ToolTip="현재 진행 중인 이미지 로드 또는 분석 작업을 안전하게 취소합니다.">
+         <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE711;"/>
+        </Button>
       </Grid>
      </Border>
     </Grid>
