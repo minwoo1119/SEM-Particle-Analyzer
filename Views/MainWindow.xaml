@@ -159,14 +159,10 @@
    <Border Grid.Column="1" Grid.RowSpan="2" Margin="6,12,12,12" Background="White" BorderBrush="{StaticResource Line}" BorderThickness="1">
     <Grid>
      <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
      </Grid.RowDefinitions>
-     <Border Padding="12,10" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1">
-      <TextBlock Text="ANALYSIS CONDITIONS" FontWeight="SemiBold" FontSize="11"/>
-     </Border>
-     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+     <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
       CanContentScroll="True" Padding="0,0,0,8">
       <StackPanel Margin="12,12,12,4">
        <GroupBox Header="분석 ROI"
@@ -257,7 +253,7 @@
        </GroupBox>
       </StackPanel>
      </ScrollViewer>
-     <Border Grid.Row="2" Background="#F8F9FA" BorderBrush="{StaticResource Line}"
+     <Border Grid.Row="1" Background="#F8F9FA" BorderBrush="{StaticResource Line}"
       BorderThickness="0,1,0,0" Padding="12,10">
       <Grid>
        <Grid.ColumnDefinitions>
