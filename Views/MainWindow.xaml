@@ -21,13 +21,8 @@
       ToolTip="원본 해상도로 다시 분석한 뒤 이미지, CSV, JSON, HTML 보고서를 결과 폴더에 저장합니다."/>
     </StackPanel>
     <StackPanel Orientation="Horizontal">
-     <TextBlock Text="SEM PARTICLE ANALYZER" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" Margin="0,0,18,0"/>
      <Button Content="이미지 열기" Command="{Binding OpenImageCommand}"
       ToolTip="PNG, JPEG, BMP, TIFF 이미지를 엽니다. 원본 파일은 수정하지 않습니다."/>
-     <Button Content="분석 실행" Command="{Binding AnalyzeCommand}"
-      ToolTip="현재 ROI와 모든 활성 조건을 적용하여 입자를 다시 검출하고 측정합니다."/>
-     <Button Content="취소" Command="{Binding CancelCommand}"
-      ToolTip="현재 진행 중인 이미지 로드 또는 분석 작업을 안전하게 취소합니다."/>
     </StackPanel>
    </DockPanel>
   </Border>
@@ -44,7 +39,10 @@
 
    <Border Grid.Column="0" Grid.Row="0" Margin="12,12,6,6" Background="#17191B" BorderBrush="#C9CDD1" BorderThickness="1">
     <Grid>
-     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition/></Grid.RowDefinitions>
+     <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+     </Grid.RowDefinitions>
      <Border Grid.Row="0" Background="#292C2F" Padding="10,7">
       <DockPanel>
        <TextBlock DockPanel.Dock="Right" Text="{Binding ImageDescription}" Foreground="#B8BDC1" VerticalAlignment="Center"/>
@@ -146,12 +144,17 @@
 
    <Border Grid.Column="1" Grid.RowSpan="2" Margin="6,12,12,12" Background="White" BorderBrush="{StaticResource Line}" BorderThickness="1">
     <Grid>
-     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition/></Grid.RowDefinitions>
+     <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+     </Grid.RowDefinitions>
      <Border Padding="12,10" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1">
       <TextBlock Text="ANALYSIS CONDITIONS" FontWeight="SemiBold" FontSize="11"/>
      </Border>
-     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-      <StackPanel Margin="12">
+     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+      CanContentScroll="True" Padding="0,0,0,8">
+      <StackPanel Margin="12,12,12,4">
        <GroupBox Header="분석 ROI"
         ToolTip="실제로 분석할 사각 영역입니다. 이미지 위에서 드래그하거나 원본 이미지 기준 픽셀 좌표를 입력합니다. ROI 밖 픽셀은 분석하지 않습니다.">
         <Grid>
@@ -240,6 +243,20 @@
        </GroupBox>
       </StackPanel>
      </ScrollViewer>
+     <Border Grid.Row="2" Background="#F8F9FA" BorderBrush="{StaticResource Line}"
+      BorderThickness="0,1,0,0" Padding="12,10">
+      <Grid>
+       <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+       </Grid.ColumnDefinitions>
+       <Button Content="분석 실행" Command="{Binding AnalyzeCommand}" Margin="0"
+        Background="{StaticResource Accent}" Foreground="White" FontWeight="SemiBold"
+        ToolTip="현재 ROI와 모든 활성 조건을 적용하여 입자를 다시 검출하고 측정합니다."/>
+       <Button Grid.Column="1" Content="취소" Command="{Binding CancelCommand}" Margin="8,0,0,0"
+        ToolTip="현재 진행 중인 이미지 로드 또는 분석 작업을 안전하게 취소합니다."/>
+      </Grid>
+     </Border>
     </Grid>
    </Border>
 
