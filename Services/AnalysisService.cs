@@ -231,8 +231,7 @@ public sealed class AnalysisService : IAnalysisService
             Cv2.Normalize(overlay, normalized, 0, 255, NormTypes.MinMax, MatType.CV_8UC3.Value);
             normalized.CopyTo(overlay);
         }
-        // 분석 ROI: 밝은 노랑. 밝거나 어두운 SEM 영상 모두에서 식별하기 쉽도록 2 px로 표시한다.
-        Cv2.Rectangle(overlay, roi, new Scalar(40, 220, 255), 2, LineTypes.AntiAlias);
+        Cv2.Rectangle(overlay, roi, new Scalar(40, 220, 255), 1, LineTypes.AntiAlias);
         foreach (var item in objects)
         {
             var contour = item.ContourPoints.Select(p => new Point(p.X, p.Y)).ToArray();
@@ -240,7 +239,6 @@ public sealed class AnalysisService : IAnalysisService
             var b = new Rect(item.BoundingBoxX, item.BoundingBoxY, item.BoundingBoxWidth, item.BoundingBoxHeight);
             // Accepted는 밝은 초록, Rejected는 주황-빨강으로 고정한다.
             var color = item.FinalAccepted ? new Scalar(70, 230, 105) : new Scalar(50, 95, 255);
-            Cv2.DrawContours(overlay, [contour], -1, new Scalar(15, 15, 15), 2, LineTypes.AntiAlias);
             Cv2.DrawContours(overlay, [contour], -1, color, 1, LineTypes.AntiAlias);
         }
         return overlay;

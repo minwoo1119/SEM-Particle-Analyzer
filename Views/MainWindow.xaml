@@ -100,11 +100,11 @@
         </Grid.RenderTransform>
         <Image Source="{Binding DisplayImage}" Stretch="Uniform" SnapsToDevicePixels="True"/>
         <Canvas x:Name="RoiCanvas">
-         <Rectangle x:Name="RoiRectangle" Stroke="#FFD54F" StrokeThickness="2.5"
+         <Rectangle x:Name="RoiRectangle" Stroke="#FFD54F" StrokeThickness="1.25"
           StrokeDashArray="6,3" Fill="#16FFD54F" Visibility="Collapsed"/>
-         <Polygon x:Name="SelectionContour" Stroke="#00E5FF" StrokeThickness="1.5"
+         <Polygon x:Name="SelectionContour" Stroke="#00E5FF" StrokeThickness="1"
           StrokeLineJoin="Round" Fill="#2200E5FF" Visibility="Collapsed"/>
-         <Rectangle x:Name="ZoomAreaRectangle" Stroke="#FFFFFF" StrokeThickness="2"
+         <Rectangle x:Name="ZoomAreaRectangle" Stroke="#FFFFFF" StrokeThickness="1"
           StrokeDashArray="4,2" Fill="#30FFD54F" Visibility="Collapsed"/>
         </Canvas>
        </Grid>

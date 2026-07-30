@@ -311,9 +311,9 @@ public partial class MainWindow : Window
     private void UpdateOverlayStrokeWidths()
     {
         var inverseZoom = 1 / ViewerScaleTransform.ScaleX;
-        RoiRectangle.StrokeThickness = 2 * inverseZoom;
-        SelectionContour.StrokeThickness = 1.5 * inverseZoom;
-        ZoomAreaRectangle.StrokeThickness = 1.5 * inverseZoom;
+        RoiRectangle.StrokeThickness = 1.25 * inverseZoom;
+        SelectionContour.StrokeThickness = 1 * inverseZoom;
+        ZoomAreaRectangle.StrokeThickness = 1 * inverseZoom;
     }
 
     protected override void OnClosed(EventArgs e)
